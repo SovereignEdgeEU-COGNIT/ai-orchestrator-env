@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 )
 
 type Postgresql interface {
@@ -87,6 +88,16 @@ func (db *Database) dropHostsTable() error {
 	return nil
 }
 
+func (db *Database) dropMetricsTable() error {
+	sqlStatement := `DROP TABLE ` + db.dbPrefix + `METRICS`
+	_, err := db.postgresql.Exec(sqlStatement)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *Database) dropVMsTable() error {
 	sqlStatement := `DROP TABLE ` + db.dbPrefix + `VMS`
 	_, err := db.postgresql.Exec(sqlStatement)
@@ -103,6 +114,11 @@ func (db *Database) Drop() error {
 		return err
 	}
 
+	err = db.dropMetricsTable()
+	if err != nil {
+		return err
+	}
+
 	err = db.dropVMsTable()
 	if err != nil {
 		return err
@@ -113,15 +129,10 @@ func (db *Database) Drop() error {
 
 func (db *Database) createHypertables() error {
 	prefix := strings.ToLower(db.dbPrefix)
-	sqlStatement := `SELECT create_hypertable ('` + prefix + `hosts', by_range('timestamp', INTERVAL '1 day'))`
+	sqlStatement := `SELECT create_hypertable ('` + prefix + `metrics', by_range('ts', INTERVAL '1 day'))`
 	_, err := db.postgresql.Exec(sqlStatement)
 	if err != nil {
-		return err
-	}
-
-	sqlStatement = `SELECT create_hypertable ('` + prefix + `vms', by_range('timestamp', INTERVAL '1 day'))`
-	_, err = db.postgresql.Exec(sqlStatement)
-	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("Failed to create hypertable")
 		return err
 	}
 
@@ -129,7 +140,6 @@ func (db *Database) createHypertables() error {
 }
 
 func (db *Database) createHostsTable() error {
-	//sqlStatement := `CREATE TABLE ` + db.dbPrefix + `HOSTS (HOSTID TEXT PRIMARY KEY NOT NULL, HOSTNAME TEXT NOT, TS TIMESTAMPTZ, CPU BIGINT, MEMORY BIGINT)`
 	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `HOSTS (HOSTID TEXT PRIMARY KEY NOT NULL, HOSTNAME TEXT NOT NULL)`
 	_, err := db.postgresql.Exec(sqlStatement)
 	if err != nil {
@@ -139,8 +149,18 @@ func (db *Database) createHostsTable() error {
 	return nil
 }
 
+func (db *Database) createMetricsTable() error {
+	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `METRICS (HOSTID TEXT, TYPE INTEGER, TS TIMESTAMPTZ, CPU BIGINT, MEMORY BIGINT)`
+	_, err := db.postgresql.Exec(sqlStatement)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *Database) createVMsTable() error {
-	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `VMS (VMID TEXT PRIMARY KEY NOT NULL, VMNAME TEXT NOT NULL)`
+	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `VMS (VMID TEXT PRIMARY KEY NOT NULL, HOSTNAME TEXT NOT NULL)`
 	_, err := db.postgresql.Exec(sqlStatement)
 	if err != nil {
 		return err
@@ -155,15 +175,20 @@ func (db Database) Initialize() error {
 		return err
 	}
 
+	err = db.createMetricsTable()
+	if err != nil {
+		return err
+	}
+
 	err = db.createVMsTable()
 	if err != nil {
 		return err
 	}
 
-	// err = db.createHypertables()
-	// if err != nil {
-	// 	return err
-	// }
+	err = db.createHypertables()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

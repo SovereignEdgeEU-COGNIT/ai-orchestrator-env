@@ -7,16 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddHost(t *testing.T) {
+func TestAddVM(t *testing.T) {
 	db, err := PrepareTests()
 	assert.Nil(t, err)
 	defer db.Close()
 
-	host := &core.Host{HostID: "test_host_id", Hostname: "test_host_name"}
-	err = db.AddHost(host)
+	vm := &core.VM{VMID: "test_vm_id", Hostname: "test_host_name"}
+	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
-	hosts, err := db.GetHosts()
+	vms, err := db.GetVMs()
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(hosts))
+	assert.Equal(t, 1, len(vms))
 }
