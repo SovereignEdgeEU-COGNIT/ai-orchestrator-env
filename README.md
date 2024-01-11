@@ -1,6 +1,6 @@
 # Introduction
 
-This repo provides a virtual environment, functioning as a *digital twin* of a cloud-edge infrastructure, specificallt designed to enable AI agents to automate and optimize IT operations. The environment represents a *virtual world* where AI agents can both operate and learn. 
+This repo provides a virtual environment, functioning as a *digital twin* of a cloud-edge infrastructure, specifically designed to enable AI agents to automate and optimize IT operations. The environment represents a *virtual world* where AI agents can both operate and learn. 
 
 The virtual environment serves multiple purposes:
 
