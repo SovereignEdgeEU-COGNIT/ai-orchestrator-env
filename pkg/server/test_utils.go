@@ -4,6 +4,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/client"
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/database"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -13,8 +14,8 @@ import (
 const TESTHOST = "localhost"
 const TESTPORT = 30090
 
-func PrepareTests(t *testing.T) (*client.EnvClient, *EnvServer, chan bool) {
-	client := client.CreateEnvClient(TESTHOST, TESTPORT)
+func prepareTests(t *testing.T) (*client.EnvClient, *EnvServer, chan bool) {
+	client := client.CreateEnvClient(TESTHOST, TESTPORT, true)
 	gin.SetMode(gin.ReleaseMode)
 	log.SetLevel(log.PanicLevel)
 	gin.DefaultWriter = io.Discard

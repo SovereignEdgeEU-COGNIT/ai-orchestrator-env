@@ -8,13 +8,13 @@ import (
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/core"
 )
 
-func (db *Database) AddMetric(hostID string, metricType int, metric *core.Metric) error {
-	if hostID == "" {
-		return errors.New("HostID must be specified")
+func (db *Database) AddMetric(id string, metricType int, metric *core.Metric) error {
+	if id == "" {
+		return errors.New("ID must be specified")
 	}
 
 	sqlStatement := `INSERT INTO ` + db.dbPrefix + `METRICS (HOSTID, TYPE, TS, CPU, MEMORY) VALUES ($1, $2, $3, $4, $5)`
-	_, err := db.postgresql.Exec(sqlStatement, hostID, metricType, metric.Timestamp, metric.CPU, metric.Memory)
+	_, err := db.postgresql.Exec(sqlStatement, id, metricType, metric.Timestamp, metric.CPU, metric.Memory)
 	if err != nil {
 		return err
 	}

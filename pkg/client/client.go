@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/core"
 	"github.com/go-resty/resty/v2"
@@ -38,7 +39,7 @@ func checkStatus(statusCode int, body string) error {
 	return nil
 }
 
-func (client *EnvClient) AddMetric(metric *core.Metric) error {
+func (client *EnvClient) AddMetric(id string, metricType int, metric *core.Metric) error {
 	jsonString, err := metric.ToJSON()
 	if err != nil {
 		return err
@@ -47,7 +48,7 @@ func (client *EnvClient) AddMetric(metric *core.Metric) error {
 	resp, err := client.restyClient.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonString).
-		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/metrics")
+		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/metrics?hostid=" + id + "&metrictype=" + strconv.Itoa(metricType))
 	if err != nil {
 		return err
 	}
@@ -60,10 +61,10 @@ func (client *EnvClient) AddMetric(metric *core.Metric) error {
 	return nil
 }
 
+func (client *EnvClient) GetMetrics(hostID string, metricType int, since time.Time, count int) ([]*core.Metric, error) {
+	sinceUnixNano := since.UnixNano()
 
-func (client *EnvClient) GetEvents(hostID string , metricType int, sinceUnixNano int64, count) ([]*core.Metric, error) {
 	resp, err := client.restyClient.R().
-		SetHeader("APIKEY", client.apiKey).
 		Get(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/metrics?hostid=" + hostID + "&metrictype=" + strconv.Itoa(metricType) + "&since=" + strconv.FormatInt(sinceUnixNano, 10) + "&count=" + strconv.Itoa(count))
 	if err != nil {
 		return nil, err
@@ -76,10 +77,10 @@ func (client *EnvClient) GetEvents(hostID string , metricType int, sinceUnixNano
 
 	respBodyString := string(resp.Body())
 
-	seismogramPackages, err := core.ConvertJSONToMetricArray(respBodyString)
+	metrics, err := core.ConvertJSONToMetricArray(respBodyString)
 	if err != nil {
 		return nil, err
 	}
 
-	return seismogramPackages, nil
+	return metrics, nil
 }
