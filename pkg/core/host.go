@@ -3,8 +3,10 @@ package core
 import "encoding/json"
 
 type Host struct {
-	HostID   string `json:"hostid"`
-	Hostname string `json:"hostname"`
+	HostID        string `json:"hostid"`
+	Hostname      string `json:"hostname"`
+	CurrentCPU    int64  `json:"current_cpu"`
+	CurrentMemory int64  `json:"current_memory"`
 }
 
 func ConvertJSONToHost(jsonString string) (*Host, error) {
@@ -52,7 +54,9 @@ func (host *Host) Equals(host2 *Host) bool {
 	}
 
 	if host.HostID == host2.HostID &&
-		host.Hostname == host2.Hostname {
+		host.Hostname == host2.Hostname &&
+		host.CurrentCPU == host2.CurrentCPU &&
+		host.CurrentMemory == host2.CurrentMemory {
 		return true
 	}
 
