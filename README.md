@@ -3,7 +3,7 @@ This repo provides a virtual environment, functioning as a *digital twin* of a c
 
 The virtual environment serves multiple purposes:
 
-* **Data Collection:** Connect to a real infrastructure to gather real-time data, essential for training AI agents.
+* **Data collection:** Connect to a real infrastructure to gather real-time data, essential for training AI agents.
 * **Simulation:** Utilizing the collected data, AI agents can be trained within the virtual environment, allowing them to learn and adapt to various situations without impacting the real infrastructure.
 * **Deployment:** Post-training, by connecting to a real infrastrucure, the AI agents can be deployed to leverage their learned strategies and to automate and enhance IT operations.
 
