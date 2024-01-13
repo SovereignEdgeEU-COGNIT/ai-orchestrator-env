@@ -23,8 +23,8 @@ func TestVMToJSON(t *testing.T) {
 func TestVMArrayToJSON(t *testing.T) {
 	var vms []*VM
 
-	vm1 := &VM{VMID: "1", StateID: 0, Hostname: "hostname1", CurrentCPU: 1, CurrentMemory: 1}
-	vm2 := &VM{VMID: "2", StateID: 0, Hostname: "hostname2", CurrentCPU: 2, CurrentMemory: 2}
+	vm1 := &VM{VMID: "1", StateID: 0, Hostname: "hostname1", CurrentCPU: 1, CurrentMemory: 1, Deployed: false, HostID: "", HostStateID: 0}
+	vm2 := &VM{VMID: "2", StateID: 0, Hostname: "hostname2", CurrentCPU: 2, CurrentMemory: 2, Deployed: false, HostID: "", HostStateID: 0}
 
 	vms = append(vms, vm1)
 	vms = append(vms, vm2)

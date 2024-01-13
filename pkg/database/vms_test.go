@@ -50,7 +50,7 @@ func TestVMStateMetric(t *testing.T) {
 	for _, vm := range vms {
 		counter += vm.StateID
 	}
-	assert.Equal(t, 1, counter)
+	assert.Equal(t, 3, counter)
 
 	// If we remove a vm and add another one, the state ID should be reused
 	err = db.RemoveVM("test_vm1_id")
@@ -67,7 +67,7 @@ func TestVMStateMetric(t *testing.T) {
 	for _, vm := range vms {
 		counter += vm.StateID
 	}
-	assert.Equal(t, 1, counter)
+	assert.Equal(t, 3, counter)
 }
 
 func TestSetVMResources(t *testing.T) {

@@ -23,8 +23,8 @@ func (db *Database) AddHost(host *core.Host) error {
 		usedStateIDs[h.StateID] = true
 	}
 
-	// Find the first available stateID
-	stateID := 0
+	// Find the first available stateID, starting at 1
+	stateID := 1
 	for usedStateIDs[stateID] {
 		stateID++
 	}

@@ -17,8 +17,8 @@ func TestAddHostMetrics(t *testing.T) {
 
 	host, err = client.GetHost("host1")
 	assert.Nil(t, err)
-	assert.Equal(t, host.CurrentCPU, 0)
-	assert.Equal(t, host.CurrentMemory, 0)
+	assert.Equal(t, host.CurrentCPU, int64(0))
+	assert.Equal(t, host.CurrentMemory, int64(0))
 
 	now := time.Now()
 	err = client.AddMetric("host1", core.HostType, &core.Metric{Timestamp: now, CPU: 1, Memory: 10})
@@ -43,17 +43,17 @@ func TestAddHostMetrics(t *testing.T) {
 func TestAddVMMetrics(t *testing.T) {
 	client, server, done := prepareTests(t)
 
-	vm := &core.VM{VMID: "host1", Hostname: "test_vm_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	vm := &core.VM{VMID: "vm1", Hostname: "test_vm_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
 	err := client.AddVM(vm)
 	assert.Nil(t, err)
 
 	vm, err = client.GetVM("vm1")
 	assert.Nil(t, err)
-	assert.Equal(t, vm.CurrentCPU, 0)
-	assert.Equal(t, vm.CurrentMemory, 0)
+	assert.Equal(t, vm.CurrentCPU, int64(0))
+	assert.Equal(t, vm.CurrentMemory, int64(0))
 
 	now := time.Now()
-	err = client.AddMetric("host1", core.VMType, &core.Metric{Timestamp: now, CPU: 1, Memory: 10})
+	err = client.AddMetric("vm1", core.VMType, &core.Metric{Timestamp: now, CPU: 1, Memory: 10})
 	assert.Nil(t, err)
 
 	oneSecondAgo := now.Add(-time.Second)

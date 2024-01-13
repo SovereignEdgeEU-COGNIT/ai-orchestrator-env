@@ -50,7 +50,7 @@ func TestHostStateMetric(t *testing.T) {
 	for _, host := range hosts {
 		counter += host.StateID
 	}
-	assert.Equal(t, 1, counter)
+	assert.Equal(t, 3, counter)
 
 	// If we remove a host and add another one, the state ID should be reused
 	err = db.RemoveHost("test_host1_id")
@@ -67,7 +67,7 @@ func TestHostStateMetric(t *testing.T) {
 	for _, host := range hosts {
 		counter += host.StateID
 	}
-	assert.Equal(t, 1, counter)
+	assert.Equal(t, 3, counter)
 }
 
 func TestSetHostResources(t *testing.T) {

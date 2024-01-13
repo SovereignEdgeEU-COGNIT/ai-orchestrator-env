@@ -8,6 +8,9 @@ type VM struct {
 	Hostname      string `json:"hostname"`
 	CurrentCPU    int64  `json:"current_cpu"`
 	CurrentMemory int64  `json:"current_memory"`
+	Deployed      bool   `json:"deployed"`
+	HostID        string `json:"hostid"`
+	HostStateID   int    `json:"hoststateid"`
 }
 
 func ConvertJSONToVM(jsonString string) (*VM, error) {
@@ -58,7 +61,10 @@ func (vm *VM) Equals(vm2 *VM) bool {
 		vm.StateID == vm2.StateID &&
 		vm.Hostname == vm2.Hostname &&
 		vm.CurrentCPU == vm2.CurrentCPU &&
-		vm.CurrentMemory == vm2.CurrentMemory {
+		vm.CurrentMemory == vm2.CurrentMemory &&
+		vm.Deployed == vm2.Deployed &&
+		vm.HostID == vm2.HostID &&
+		vm.HostStateID == vm2.HostStateID {
 		return true
 	}
 
