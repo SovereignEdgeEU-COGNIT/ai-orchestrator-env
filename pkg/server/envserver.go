@@ -43,6 +43,14 @@ func CreateEnvServer(db database.Database, port int) *EnvServer {
 }
 
 func (server *EnvServer) setupRoutes() {
+	server.ginHandler.POST("/hosts", server.handleAddHostRequest)
+	server.ginHandler.GET("/hosts/:id", server.handleGetHostRequest)
+	server.ginHandler.GET("/hosts", server.handleGetHostsRequest)
+	server.ginHandler.DELETE("/hosts/:id", server.handleRemoveHostRequest)
+	server.ginHandler.POST("/vms", server.handleAddVMRequest)
+	server.ginHandler.GET("/vms/:id", server.handleGetVMRequest)
+	server.ginHandler.GET("/vms", server.handleGetVMsRequest)
+	server.ginHandler.DELETE("/vms/:id", server.handleRemoveVMRequest)
 	server.ginHandler.POST("/metrics", server.handleAddMetricRequest)
 	server.ginHandler.GET("/metrics", server.handleGetMetricsRequest)
 }

@@ -6,9 +6,9 @@ import (
 )
 
 type Metric struct {
-	Memory    int64     `json:"memory"`
-	CPU       int64     `json:"cpu"`
 	Timestamp time.Time `json:"timestamp"`
+	CPU       int64     `json:"cpu"`
+	Memory    int64     `json:"memory"`
 }
 
 func ConvertJSONToMetric(jsonString string) (*Metric, error) {

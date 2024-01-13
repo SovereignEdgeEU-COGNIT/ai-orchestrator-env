@@ -140,7 +140,17 @@ func (db *Database) createHypertables() error {
 }
 
 func (db *Database) createHostsTable() error {
-	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `HOSTS (HOSTID TEXT PRIMARY KEY NOT NULL, HOSTNAME TEXT NOT NULL)`
+	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `HOSTS (HOSTID TEXT PRIMARY KEY NOT NULL, STATEID INTEGER, HOSTNAME TEXT NOT NULL, CURRENTCPU BIGINT, CURRENTMEMORY BIGINT)`
+	_, err := db.postgresql.Exec(sqlStatement)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) createVMsTable() error {
+	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `VMS (VMID TEXT PRIMARY KEY NOT NULL, STATEID INTEGER, HOSTNAME TEXT NOT NULL, CURRENTCPU BIGINT, CURRENTMEMORY BIGINT)`
 	_, err := db.postgresql.Exec(sqlStatement)
 	if err != nil {
 		return err
@@ -151,16 +161,6 @@ func (db *Database) createHostsTable() error {
 
 func (db *Database) createMetricsTable() error {
 	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `METRICS (HOSTID TEXT, TYPE INTEGER, TS TIMESTAMPTZ, CPU BIGINT, MEMORY BIGINT)`
-	_, err := db.postgresql.Exec(sqlStatement)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (db *Database) createVMsTable() error {
-	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `VMS (VMID TEXT PRIMARY KEY NOT NULL, HOSTNAME TEXT NOT NULL)`
 	_, err := db.postgresql.Exec(sqlStatement)
 	if err != nil {
 		return err

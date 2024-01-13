@@ -23,8 +23,8 @@ func TestHostToJSON(t *testing.T) {
 func TestHostArrayToJSON(t *testing.T) {
 	var hosts []*Host
 
-	host1 := &Host{HostID: "1", Hostname: "hostname1"}
-	host2 := &Host{HostID: "2", Hostname: "hostname2"}
+	host1 := &Host{HostID: "1", StateID: 1, Hostname: "hostname1", CurrentCPU: 1.0, CurrentMemory: 1.0}
+	host2 := &Host{HostID: "2", StateID: 2, Hostname: "hostname2", CurrentCPU: 2.0, CurrentMemory: 2.0}
 
 	hosts = append(hosts, host1)
 	hosts = append(hosts, host2)

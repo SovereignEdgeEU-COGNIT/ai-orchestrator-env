@@ -11,7 +11,7 @@ import (
 )
 
 func (server *EnvServer) handleAddMetricRequest(c *gin.Context) {
-	hostID, ok := c.GetQuery("hostid")
+	id, ok := c.GetQuery("id")
 	if !ok {
 		c.String(http.StatusBadRequest, "Paramater hostid must be specified")
 		return
@@ -28,6 +28,31 @@ func (server *EnvServer) handleAddMetricRequest(c *gin.Context) {
 		return
 	}
 
+	if metricType == core.HostType {
+		host, err := server.db.GetHost(id)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+		if host == nil {
+			c.String(http.StatusBadRequest, "Host with id <"+id+"> does not exist")
+			return
+		}
+	} else if metricType == core.VMType {
+		vm, err := server.db.GetVM(id)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+		if vm == nil {
+			c.String(http.StatusBadRequest, "VM with id <"+id+"> does not exist")
+			return
+		}
+	} else {
+		c.String(http.StatusBadRequest, "Invalid metric type")
+		return
+	}
+
 	jsonData, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())
@@ -40,10 +65,27 @@ func (server *EnvServer) handleAddMetricRequest(c *gin.Context) {
 		return
 	}
 
-	err = server.db.AddMetric(hostID, metricType, metric)
+	err = server.db.AddMetric(id, metricType, metric)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return
+	}
+
+	switch metricType {
+	case core.HostType:
+		err = server.db.SetHostResources(id, metric.CPU, metric.Memory)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+	case core.VMType:
+		err = server.db.SetVMResources(id, metric.CPU, metric.Memory)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+	default:
+		c.String(http.StatusBadRequest, "Invalid metric type")
 	}
 
 	c.String(http.StatusOK, "")

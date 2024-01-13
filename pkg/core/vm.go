@@ -3,8 +3,11 @@ package core
 import "encoding/json"
 
 type VM struct {
-	VMID     string `json:"vmid"`
-	Hostname string `json:"hostname"`
+	VMID          string `json:"vmid"`
+	StateID       int    `json:"stateid"`
+	Hostname      string `json:"hostname"`
+	CurrentCPU    int64  `json:"current_cpu"`
+	CurrentMemory int64  `json:"current_memory"`
 }
 
 func ConvertJSONToVM(jsonString string) (*VM, error) {
@@ -52,7 +55,10 @@ func (vm *VM) Equals(vm2 *VM) bool {
 	}
 
 	if vm.VMID == vm2.VMID &&
-		vm.Hostname == vm2.Hostname {
+		vm.StateID == vm2.StateID &&
+		vm.Hostname == vm2.Hostname &&
+		vm.CurrentCPU == vm2.CurrentCPU &&
+		vm.CurrentMemory == vm2.CurrentMemory {
 		return true
 	}
 

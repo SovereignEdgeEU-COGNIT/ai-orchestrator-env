@@ -40,15 +40,15 @@ func checkStatus(statusCode int, body string) error {
 }
 
 func (client *EnvClient) AddMetric(id string, metricType int, metric *core.Metric) error {
-	jsonString, err := metric.ToJSON()
+	jsonStr, err := metric.ToJSON()
 	if err != nil {
 		return err
 	}
 
 	resp, err := client.restyClient.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(jsonString).
-		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/metrics?hostid=" + id + "&metrictype=" + strconv.Itoa(metricType))
+		SetBody(jsonStr).
+		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/metrics?id=" + id + "&metrictype=" + strconv.Itoa(metricType))
 	if err != nil {
 		return err
 	}
@@ -75,12 +75,174 @@ func (client *EnvClient) GetMetrics(hostID string, metricType int, since time.Ti
 		return nil, err
 	}
 
-	respBodyString := string(resp.Body())
+	respBodyStr := string(resp.Body())
 
-	metrics, err := core.ConvertJSONToMetricArray(respBodyString)
+	metrics, err := core.ConvertJSONToMetricArray(respBodyStr)
 	if err != nil {
 		return nil, err
 	}
 
 	return metrics, nil
+}
+
+func (client *EnvClient) AddHost(host *core.Host) error {
+	jsonStr, err := host.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.restyClient.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(jsonStr).
+		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/hosts")
+	if err != nil {
+		return err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *EnvClient) GetHost(hostID string) (*core.Host, error) {
+	resp, err := client.restyClient.R().
+		Get(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/hosts/" + hostID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return nil, err
+	}
+
+	respBodyStr := string(resp.Body())
+
+	host, err := core.ConvertJSONToHost(respBodyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return host, nil
+}
+
+func (client *EnvClient) GetHosts() ([]*core.Host, error) {
+	resp, err := client.restyClient.R().
+		Get(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/hosts")
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return nil, err
+	}
+
+	respBodyStr := string(resp.Body())
+
+	hosts, err := core.ConvertJSONToHostArray(respBodyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return hosts, nil
+}
+
+func (client *EnvClient) RemoveHost(hostID string) error {
+	resp, err := client.restyClient.R().
+		Delete(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/hosts/" + hostID)
+	if err != nil {
+		return err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *EnvClient) AddVM(vm *core.VM) error {
+	jsonStr, err := vm.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.restyClient.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(jsonStr).
+		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/vms")
+	if err != nil {
+		return err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (client *EnvClient) GetVM(vmID string) (*core.VM, error) {
+	resp, err := client.restyClient.R().
+		Get(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/vms/" + vmID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return nil, err
+	}
+
+	respBodyStr := string(resp.Body())
+
+	vm, err := core.ConvertJSONToVM(respBodyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return vm, nil
+}
+
+func (client *EnvClient) GetVMs() ([]*core.VM, error) {
+	resp, err := client.restyClient.R().
+		Get(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/vms")
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return nil, err
+	}
+
+	respBodyStr := string(resp.Body())
+
+	vms, err := core.ConvertJSONToVMArray(respBodyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return vms, nil
+}
+
+func (client *EnvClient) RemoveVM(vmID string) error {
+	resp, err := client.restyClient.R().
+		Delete(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/vms/" + vmID)
+	if err != nil {
+		return err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

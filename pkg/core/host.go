@@ -4,6 +4,7 @@ import "encoding/json"
 
 type Host struct {
 	HostID        string `json:"hostid"`
+	StateID       int    `json:"stateid"`
 	Hostname      string `json:"hostname"`
 	CurrentCPU    int64  `json:"current_cpu"`
 	CurrentMemory int64  `json:"current_memory"`
@@ -54,6 +55,7 @@ func (host *Host) Equals(host2 *Host) bool {
 	}
 
 	if host.HostID == host2.HostID &&
+		host.StateID == host2.StateID &&
 		host.Hostname == host2.Hostname &&
 		host.CurrentCPU == host2.CurrentCPU &&
 		host.CurrentMemory == host2.CurrentMemory {
