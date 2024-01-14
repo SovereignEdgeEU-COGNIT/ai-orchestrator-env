@@ -31,6 +31,8 @@ var HostID string
 var ASCII = false
 var TotalCPU string
 var TotalMemory string
+var UsageCPU string
+var UsageMemory string
 var VMID string
 
 func init() {

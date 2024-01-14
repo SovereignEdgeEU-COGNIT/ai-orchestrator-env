@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/client"
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/core"
@@ -14,12 +15,13 @@ func init() {
 	vmsCmd.AddCommand(addVMCmd)
 	vmsCmd.AddCommand(getVMsCmd)
 	vmsCmd.AddCommand(bindCmd)
+	vmsCmd.AddCommand(reportVMMetricCmd)
 	rootCmd.AddCommand(vmsCmd)
 
 	addVMCmd.Flags().StringVarP(&VMID, "vmid", "", "", "VM Id")
 	addVMCmd.MarkFlagRequired("vmid")
 
-	addVMCmd.Flags().StringVarP(&TotalCPU, "totalcpu", "", "", "Total CPU in millicores")
+	addVMCmd.Flags().StringVarP(&TotalCPU, "totalcpu", "", "", "Total CPU.")
 	addVMCmd.MarkFlagRequired("totalcpu")
 	addVMCmd.Flags().StringVarP(&TotalMemory, "totalmem", "", "", "Total memory in bytes")
 	addVMCmd.MarkFlagRequired("totalmem")
@@ -29,6 +31,13 @@ func init() {
 
 	bindCmd.Flags().StringVarP(&HostID, "hostid", "", "", "Host Id")
 	addVMCmd.MarkFlagRequired("hostid")
+
+	reportVMMetricCmd.Flags().StringVarP(&VMID, "vmid", "", "", "VM Id")
+	reportVMMetricCmd.MarkFlagRequired("vmid")
+	reportVMMetricCmd.Flags().StringVarP(&UsageCPU, "cpu", "", "", "CPU usage")
+	reportVMMetricCmd.MarkFlagRequired("cpu")
+	reportVMMetricCmd.Flags().StringVarP(&UsageMemory, "mem", "", "", "Memory usage in bytes")
+	reportVMMetricCmd.MarkFlagRequired("mem")
 }
 
 var vmsCmd = &cobra.Command{
@@ -111,5 +120,37 @@ var bindCmd = &cobra.Command{
 		log.WithFields(log.Fields{
 			"VMId":   VMID,
 			"HostId": HostID}).Info("VM bound")
+	},
+}
+
+var reportVMMetricCmd = &cobra.Command{
+	Use:   "report",
+	Short: "Report VM metrics",
+	Long:  "Report VM metrics",
+	Run: func(cmd *cobra.Command, args []string) {
+		parseEnv()
+
+		if VMID == "" {
+			log.Fatal("VM Id is required")
+		}
+
+		usageCPU, err := strconv.ParseInt(UsageCPU, 10, 64)
+		CheckError(err)
+
+		usageMem, err := strconv.ParseInt(UsageMemory, 10, 64)
+		CheckError(err)
+
+		metric := &core.Metric{Timestamp: time.Now(), Memory: usageMem, CPU: usageCPU}
+
+		client := client.CreateEnvClient(ServerHost, ServerPort, Insecure)
+
+		err = client.AddMetric(VMID, core.VMType, metric)
+		CheckError(err)
+
+		log.WithFields(log.Fields{
+			"VMId":      VMID,
+			"UsageCPU":  UsageCPU,
+			"UsageMem":  UsageMemory,
+			"Timestamp": metric.Timestamp}).Info("VM metric reported")
 	},
 }

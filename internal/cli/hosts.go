@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/client"
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/core"
@@ -13,15 +14,23 @@ import (
 func init() {
 	hostsCmd.AddCommand(addHostCmd)
 	hostsCmd.AddCommand(getHostsCmd)
+	hostsCmd.AddCommand(reportHostMetricCmd)
 	rootCmd.AddCommand(hostsCmd)
 
 	addHostCmd.Flags().StringVarP(&HostID, "hostid", "", "", "Host Id")
 	addHostCmd.MarkFlagRequired("hostid")
 
-	addHostCmd.Flags().StringVarP(&TotalCPU, "totalcpu", "", "", "Total CPU in millicores")
+	addHostCmd.Flags().StringVarP(&TotalCPU, "totalcpu", "", "", "Total CPU")
 	addHostCmd.MarkFlagRequired("totalcpu")
 	addHostCmd.Flags().StringVarP(&TotalMemory, "totalmem", "", "", "Total memory in bytes")
 	addHostCmd.MarkFlagRequired("totalmem")
+
+	reportHostMetricCmd.Flags().StringVarP(&HostID, "hostid", "", "", "Host Id")
+	reportHostMetricCmd.MarkFlagRequired("hostid")
+	reportHostMetricCmd.Flags().StringVarP(&UsageCPU, "cpu", "", "", "CPU usage")
+	reportHostMetricCmd.MarkFlagRequired("cpu")
+	reportHostMetricCmd.Flags().StringVarP(&UsageMemory, "mem", "", "", "Memory usage in bytes")
+	reportHostMetricCmd.MarkFlagRequired("mem")
 }
 
 var hostsCmd = &cobra.Command{
@@ -78,5 +87,37 @@ var getHostsCmd = &cobra.Command{
 		}
 
 		printHostsTable(hosts)
+	},
+}
+
+var reportHostMetricCmd = &cobra.Command{
+	Use:   "report",
+	Short: "Report host metrics",
+	Long:  "Report host metrics",
+	Run: func(cmd *cobra.Command, args []string) {
+		parseEnv()
+
+		if HostID == "" {
+			log.Fatal("Host Id is required")
+		}
+
+		usageCPU, err := strconv.ParseInt(UsageCPU, 10, 64)
+		CheckError(err)
+
+		usageMem, err := strconv.ParseInt(UsageMemory, 10, 64)
+		CheckError(err)
+
+		metric := &core.Metric{Timestamp: time.Now(), Memory: usageMem, CPU: usageCPU}
+
+		client := client.CreateEnvClient(ServerHost, ServerPort, Insecure)
+
+		err = client.AddMetric(HostID, core.HostType, metric)
+		CheckError(err)
+
+		log.WithFields(log.Fields{
+			"HostId":    HostID,
+			"UsageCPU":  UsageCPU,
+			"UsageMem":  UsageMemory,
+			"Timestamp": metric.Timestamp}).Info("Host metric reported")
 	},
 }
