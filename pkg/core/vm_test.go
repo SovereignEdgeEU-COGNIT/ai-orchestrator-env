@@ -7,7 +7,7 @@ import (
 )
 
 func TestVMToJSON(t *testing.T) {
-	vm := &VM{VMID: "1", StateID: 0, Hostname: "hostname"}
+	vm := &VM{VMID: "1", StateID: 0, Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 
 	jsonStr, err := vm.ToJSON()
 	assert.Nil(t, err)
@@ -23,8 +23,8 @@ func TestVMToJSON(t *testing.T) {
 func TestVMArrayToJSON(t *testing.T) {
 	var vms []*VM
 
-	vm1 := &VM{VMID: "1", StateID: 0, Hostname: "hostname1", CurrentCPU: 1, CurrentMemory: 1, Deployed: false, HostID: "", HostStateID: 0}
-	vm2 := &VM{VMID: "2", StateID: 0, Hostname: "hostname2", CurrentCPU: 2, CurrentMemory: 2, Deployed: false, HostID: "", HostStateID: 0}
+	vm1 := &VM{VMID: "1", StateID: 0, Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
+	vm2 := &VM{VMID: "2", StateID: 0, Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 
 	vms = append(vms, vm1)
 	vms = append(vms, vm2)

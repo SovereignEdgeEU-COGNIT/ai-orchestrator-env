@@ -12,6 +12,8 @@ func (db *Database) AddVM(host *core.VM) error {
 		return errors.New("VM is nil")
 	}
 
+	db.vmsMutex.Lock()
+
 	vms, err := db.GetVMs()
 	if err != nil {
 		return err
@@ -29,8 +31,10 @@ func (db *Database) AddVM(host *core.VM) error {
 		stateID++
 	}
 
-	sqlStatement := `INSERT INTO ` + db.dbPrefix + `VMS (VMID, STATEID, HOSTNAME, CURRENTCPU, CURRENTMEMORY) VALUES ($1, $2, $3, $4, $5)`
-	_, err = db.postgresql.Exec(sqlStatement, host.VMID, stateID, host.Hostname, host.CurrentCPU, host.CurrentMemory)
+	db.vmsMutex.Unlock()
+
+	sqlStatement := `INSERT INTO ` + db.dbPrefix + `VMS (VMID, STATEID, DEPLOYED, HOSTID, HOSTSTATEID, TOTAL_CPU, TOTAL_MEM, USAGE_CPU, USAGE_MEM) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	_, err = db.postgresql.Exec(sqlStatement, host.VMID, stateID, false, "", 0, host.TotalCPU, host.TotalMemory, host.UsageCPU, host.UsageMemory)
 	if err != nil {
 		return err
 	}
@@ -44,23 +48,28 @@ func (db *Database) parseVMs(rows *sql.Rows) ([]*core.VM, error) {
 	for rows.Next() {
 		var vmID string
 		var stateID int
-		var hostname string
-		var currentCPU int64
-		var currentMemory int64
-		if err := rows.Scan(&vmID, &stateID, &hostname, &currentCPU, &currentMemory); err != nil {
+		var deployed bool
+		var hostID string
+		var hostStateID int
+		var totalCPU int64
+		var totalMemory int64
+		var usageCPU int64
+		var usageMemory int64
+		if err := rows.Scan(&vmID, &stateID, &deployed, &hostID, &hostStateID, &totalCPU, &totalMemory, &usageCPU, &usageMemory); err != nil {
 			return nil, err
 		}
 
-		vm := &core.VM{VMID: vmID, StateID: stateID, Hostname: hostname, CurrentCPU: currentCPU, CurrentMemory: currentMemory}
+		vm := &core.VM{VMID: vmID, StateID: stateID, Deployed: deployed, HostID: hostID, HostStateID: hostStateID, TotalCPU: totalCPU, TotalMemory: totalMemory, UsageCPU: usageCPU, UsageMemory: usageMemory}
+
 		vms = append(vms, vm)
 	}
 
 	return vms, nil
 }
 
-func (db *Database) SetVMResources(vmID string, currentCPU, currentMemory int64) error {
-	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET CURRENTCPU = $1, CURRENTMEMORY = $2 WHERE VMID = $3`
-	_, err := db.postgresql.Exec(sqlStatement, currentCPU, currentMemory, vmID)
+func (db *Database) SetVMResources(vmID string, usageCPU, usageMemory int64) error {
+	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET USAGE_CPU = $1, USAGE_MEM = $2 WHERE VMID = $3`
+	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, vmID)
 	if err != nil {
 		return err
 	}
@@ -90,7 +99,7 @@ func (db *Database) GetVM(vmID string) (*core.VM, error) {
 }
 
 func (db *Database) GetVMs() ([]*core.VM, error) {
-	sqlStatement := `SELECT * FROM ` + db.dbPrefix + `VMS`
+	sqlStatement := `SELECT * FROM ` + db.dbPrefix + `VMS ORDER BY STATEID ASC`
 	rows, err := db.postgresql.Query(sqlStatement)
 	if err != nil {
 		return nil, err
@@ -104,6 +113,25 @@ func (db *Database) GetVMs() ([]*core.VM, error) {
 func (db *Database) RemoveVM(vmID string) error {
 	sqlStatement := `DELETE FROM ` + db.dbPrefix + `VMS WHERE VMID=$1`
 	_, err := db.postgresql.Exec(sqlStatement, vmID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) Bind(vmID, hostID string) error {
+	host, err := db.GetHost(hostID)
+	if err != nil {
+		return err
+	}
+
+	if host == nil {
+		return errors.New("Host not found")
+	}
+
+	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET DEPLOYED = $1, HOSTID = $2, HOSTSTATEID = $3 WHERE VMID = $4`
+	_, err = db.postgresql.Exec(sqlStatement, true, host.HostID, host.StateID, vmID)
 	if err != nil {
 		return err
 	}

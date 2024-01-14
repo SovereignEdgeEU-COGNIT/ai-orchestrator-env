@@ -12,6 +12,8 @@ func (db *Database) AddHost(host *core.Host) error {
 		return errors.New("Host is nil")
 	}
 
+	db.hostsMutex.Lock()
+
 	hosts, err := db.GetHosts()
 	if err != nil {
 		return err
@@ -29,8 +31,10 @@ func (db *Database) AddHost(host *core.Host) error {
 		stateID++
 	}
 
-	sqlStatement := `INSERT INTO ` + db.dbPrefix + `HOSTS (HOSTID, STATEID, HOSTNAME, CURRENTCPU, CURRENTMEMORY) VALUES ($1, $2, $3, $4, $5)`
-	_, err = db.postgresql.Exec(sqlStatement, host.HostID, stateID, host.Hostname, host.CurrentCPU, host.CurrentMemory)
+	db.hostsMutex.Unlock()
+
+	sqlStatement := `INSERT INTO ` + db.dbPrefix + `HOSTS (HOSTID, STATEID, TOTAL_CPU, TOTAL_MEM, USAGE_CPU, USAGE_MEM) VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err = db.postgresql.Exec(sqlStatement, host.HostID, stateID, host.TotalCPU, host.TotalMemory, host.UsageCPU, host.UsageMemory)
 	if err != nil {
 		return err
 	}
@@ -44,23 +48,32 @@ func (db *Database) parseHosts(rows *sql.Rows) ([]*core.Host, error) {
 	for rows.Next() {
 		var hostID string
 		var stateID int
-		var hostname string
-		var currentCPU int64
-		var currentMem int64
-		if err := rows.Scan(&hostID, &stateID, &hostname, &currentCPU, &currentMem); err != nil {
+		var totalCPU int64
+		var totalMem int64
+		var usageCPU int64
+		var usageMem int64
+
+		if err := rows.Scan(&hostID, &stateID, &totalCPU, &totalMem, &usageCPU, &usageMem); err != nil {
 			return nil, err
 		}
 
-		host := &core.Host{HostID: hostID, StateID: stateID, Hostname: hostname, CurrentCPU: currentCPU, CurrentMemory: currentMem}
+		host := &core.Host{
+			HostID:      hostID,
+			StateID:     stateID,
+			TotalCPU:    totalCPU,
+			TotalMemory: totalMem,
+			UsageCPU:    usageCPU,
+			UsageMemory: usageMem,
+		}
 		hosts = append(hosts, host)
 	}
 
 	return hosts, nil
 }
 
-func (db *Database) SetHostResources(hostID string, currentCPU, currentMemory int64) error {
-	sqlStatement := `UPDATE ` + db.dbPrefix + `HOSTS SET CURRENTCPU = $1, CURRENTMEMORY = $2 WHERE HOSTID = $3`
-	_, err := db.postgresql.Exec(sqlStatement, currentCPU, currentMemory, hostID)
+func (db *Database) SetHostResources(hostID string, usageCPU, usageMemory int64) error {
+	sqlStatement := `UPDATE ` + db.dbPrefix + `HOSTS SET USAGE_CPU = $1, USAGE_MEM = $2 WHERE HOSTID = $3`
+	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, hostID)
 	if err != nil {
 		return err
 	}
@@ -90,7 +103,7 @@ func (db *Database) GetHost(hostID string) (*core.Host, error) {
 }
 
 func (db *Database) GetHosts() ([]*core.Host, error) {
-	sqlStatement := `SELECT * FROM ` + db.dbPrefix + `HOSTS`
+	sqlStatement := `SELECT * FROM ` + db.dbPrefix + `HOSTS ORDER BY STATEID ASC`
 	rows, err := db.postgresql.Query(sqlStatement)
 	if err != nil {
 		return nil, err

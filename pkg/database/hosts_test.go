@@ -16,7 +16,7 @@ func TestAddHost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, host)
 
-	host = &core.Host{HostID: "test_host_id", Hostname: "test_host_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	host = &core.Host{HostID: "test_host_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 
@@ -35,11 +35,11 @@ func TestHostStateMetric(t *testing.T) {
 	assert.Nil(t, err)
 	defer db.Close()
 
-	host := &core.Host{HostID: "test_host1_id", Hostname: "test_host1_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	host := &core.Host{HostID: "test_host1_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 
-	host = &core.Host{HostID: "test_host2_id", Hostname: "test_host2_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	host = &core.Host{HostID: "test_host2_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 
@@ -56,7 +56,7 @@ func TestHostStateMetric(t *testing.T) {
 	err = db.RemoveHost("test_host1_id")
 	assert.Nil(t, err)
 
-	host = &core.Host{HostID: "test_host3_id", Hostname: "test_host3_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	host = &core.Host{HostID: "test_host3_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 
@@ -75,7 +75,7 @@ func TestSetHostResources(t *testing.T) {
 	assert.Nil(t, err)
 	defer db.Close()
 
-	host := &core.Host{HostID: "test_host_id", Hostname: "test_host_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	host := &core.Host{HostID: "test_host_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 
@@ -85,8 +85,8 @@ func TestSetHostResources(t *testing.T) {
 	hosts, err := db.GetHosts()
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(hosts))
-	assert.Equal(t, int64(1), hosts[0].CurrentCPU)
-	assert.Equal(t, int64(2), hosts[0].CurrentMemory)
+	assert.Equal(t, int64(1), hosts[0].UsageCPU)
+	assert.Equal(t, int64(2), hosts[0].UsageMemory)
 }
 
 func TestRemoveHost(t *testing.T) {
@@ -94,7 +94,7 @@ func TestRemoveHost(t *testing.T) {
 	assert.Nil(t, err)
 	defer db.Close()
 
-	host := &core.Host{HostID: "test_host_id", Hostname: "test_host_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	host := &core.Host{HostID: "test_host_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 

@@ -17,10 +17,10 @@ type EnvServer struct {
 	ginHandler *gin.Engine
 	port       int
 	httpServer *http.Server
-	db         database.Database
+	db         *database.Database
 }
 
-func CreateEnvServer(db database.Database, port int) *EnvServer {
+func CreateEnvServer(db *database.Database, port int) *EnvServer {
 	server := &EnvServer{}
 	server.ginHandler = gin.Default()
 	server.ginHandler.Use(cors.Default())
@@ -50,6 +50,7 @@ func (server *EnvServer) setupRoutes() {
 	server.ginHandler.POST("/vms", server.handleAddVMRequest)
 	server.ginHandler.GET("/vms/:id", server.handleGetVMRequest)
 	server.ginHandler.GET("/vms", server.handleGetVMsRequest)
+	server.ginHandler.PUT("/vms/:id/:hostid", server.handleBindRequest)
 	server.ginHandler.DELETE("/vms/:id", server.handleRemoveVMRequest)
 	server.ginHandler.POST("/metrics", server.handleAddMetricRequest)
 	server.ginHandler.GET("/metrics", server.handleGetMetricsRequest)

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -38,18 +39,19 @@ type Postgresql interface {
 }
 
 type Database struct {
-	postgresql  Postgresql
-	dbHost      string
-	dbPort      int
-	dbUser      string
-	dbPassword  string
-	dbName      string
-	dbPrefix    string
-	timescaleDB bool
+	postgresql Postgresql
+	dbHost     string
+	dbPort     int
+	dbUser     string
+	dbPassword string
+	dbName     string
+	dbPrefix   string
+	hostsMutex sync.Mutex
+	vmsMutex   sync.Mutex
 }
 
-func CreateDatabase(dbHost string, dbPort int, dbUser string, dbPassword string, dbName string, dbPrefix string, timescaleDB bool) *Database {
-	return &Database{dbHost: dbHost, dbPort: dbPort, dbUser: dbUser, dbPassword: dbPassword, dbName: dbName, dbPrefix: dbPrefix, timescaleDB: timescaleDB}
+func CreateDatabase(dbHost string, dbPort int, dbUser string, dbPassword string, dbName string, dbPrefix string) *Database {
+	return &Database{dbHost: dbHost, dbPort: dbPort, dbUser: dbUser, dbPassword: dbPassword, dbName: dbName, dbPrefix: dbPrefix}
 }
 
 func (db *Database) Connect() error {
@@ -140,7 +142,7 @@ func (db *Database) createHypertables() error {
 }
 
 func (db *Database) createHostsTable() error {
-	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `HOSTS (HOSTID TEXT PRIMARY KEY NOT NULL, STATEID INTEGER, HOSTNAME TEXT NOT NULL, CURRENTCPU BIGINT, CURRENTMEMORY BIGINT)`
+	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `HOSTS (HOSTID TEXT PRIMARY KEY NOT NULL, STATEID INTEGER, TOTAL_CPU BIGINT, TOTAL_MEM BIGINT, USAGE_CPU BIGINT, USAGE_MEM BIGINT)`
 	_, err := db.postgresql.Exec(sqlStatement)
 	if err != nil {
 		return err
@@ -150,7 +152,7 @@ func (db *Database) createHostsTable() error {
 }
 
 func (db *Database) createVMsTable() error {
-	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `VMS (VMID TEXT PRIMARY KEY NOT NULL, STATEID INTEGER, HOSTNAME TEXT NOT NULL, CURRENTCPU BIGINT, CURRENTMEMORY BIGINT)`
+	sqlStatement := `CREATE TABLE ` + db.dbPrefix + `VMS (VMID TEXT PRIMARY KEY NOT NULL, STATEID INTEGER, DEPLOYED BOOLEAN, HOSTID TEXT, HOSTSTATEID INTEGER, TOTAL_CPU BIGINT, TOTAL_MEM BIGINT, USAGE_CPU BIGINT, USAGE_MEM BIGINT)`
 	_, err := db.postgresql.Exec(sqlStatement)
 	if err != nil {
 		return err

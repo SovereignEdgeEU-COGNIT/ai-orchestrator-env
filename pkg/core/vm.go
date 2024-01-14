@@ -3,14 +3,15 @@ package core
 import "encoding/json"
 
 type VM struct {
-	VMID          string `json:"vmid"`
-	StateID       int    `json:"stateid"`
-	Hostname      string `json:"hostname"`
-	CurrentCPU    int64  `json:"current_cpu"`
-	CurrentMemory int64  `json:"current_memory"`
-	Deployed      bool   `json:"deployed"`
-	HostID        string `json:"hostid"`
-	HostStateID   int    `json:"hoststateid"`
+	VMID        string `json:"vmid"`
+	StateID     int    `json:"stateid"`
+	Deployed    bool   `json:"deployed"`
+	HostID      string `json:"hostid"`
+	HostStateID int    `json:"hoststateid"`
+	TotalCPU    int64  `json:"total_cpu"`
+	TotalMemory int64  `json:"total_memory"`
+	UsageCPU    int64  `json:"usage_cpu"`
+	UsageMemory int64  `json:"usage_memory"`
 }
 
 func ConvertJSONToVM(jsonString string) (*VM, error) {
@@ -59,12 +60,13 @@ func (vm *VM) Equals(vm2 *VM) bool {
 
 	if vm.VMID == vm2.VMID &&
 		vm.StateID == vm2.StateID &&
-		vm.Hostname == vm2.Hostname &&
-		vm.CurrentCPU == vm2.CurrentCPU &&
-		vm.CurrentMemory == vm2.CurrentMemory &&
 		vm.Deployed == vm2.Deployed &&
 		vm.HostID == vm2.HostID &&
-		vm.HostStateID == vm2.HostStateID {
+		vm.HostStateID == vm2.HostStateID &&
+		vm.TotalCPU == vm2.TotalCPU &&
+		vm.TotalMemory == vm2.TotalMemory &&
+		vm.UsageCPU == vm2.UsageCPU &&
+		vm.UsageMemory == vm2.UsageMemory {
 		return true
 	}
 

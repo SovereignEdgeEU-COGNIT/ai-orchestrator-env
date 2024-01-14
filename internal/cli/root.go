@@ -26,6 +26,12 @@ var TLSCert string
 var TLSKey string
 var ServerHost string
 var ServerPort int
+var InitDB bool
+var HostID string
+var ASCII = false
+var TotalCPU string
+var TotalMemory string
+var VMID string
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Verbose (debugging)")

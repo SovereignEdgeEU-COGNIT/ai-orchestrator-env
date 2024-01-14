@@ -1,5 +1,5 @@
 # Introduction
-This repo provides a virtual environment, functioning as a *digital twin* of a cloud-edge infrastructure, specifically designed to enable AI agents to automate and optimize IT operations. The environment represents a *virtual world* where AI agents can both operate and learn. 
+This repo provides a virtual environment, functioning as a *digital twin* of a cloud-edge infrastructure, specifically designed to enable AI agents to automate and optimize IT operations. The environment enables AI agents to both operate and learn to manage IT infrastructures. 
 
 The virtual environment serves multiple purposes:
 
@@ -9,4 +9,127 @@ The virtual environment serves multiple purposes:
 
 The environment can be used to generate *state and action spaces*. 
 * The state-space represents configurations (e.g. hosts, VMs, CPU load etc) that an AI agent might encounter in the environment. Each state is a unique snapshot of the environment at a given time. 
-* The action space defines the set of all possible actions (e.g. place or scale a VM) that the AI agent can take at any given state.  
+* The action space defines the set of all possible actions (e.g. place or scale a VM) that the AI agent can take at any given state. 
+
+# Getting started
+To use the CLI, you most source the following environmental variables:
+
+```console
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LC_CTYPE=UTF-8
+export TZ=Europe/Stockholm
+export ENVSERVER_VERBOSE="false"
+export ENVSERVER_HOST="localhost"
+export ENVSERVER_PORT="50080"
+export ENVSERVER_TLS="false"
+export ENVSERVER_DB_HOST="localhost"
+export ENVSERVER_DB_USER="postgres"
+export ENVSERVER_DB_PORT="50070"
+export ENVSERVER_DB_PASSWORD="rFcLGNkgsNtksg6Pgtn9CumL4xXBQ7"
+```
+
+Or simply:
+```console
+source .env
+```
+
+## Starting an Envserver
+```console
+envserver start -v
+```
+
+## Initialize TimescaleDB database
+```console
+envserver database create
+```
+
+The database can be droped by this command:
+```console
+envserver database drop
+```
+
+## Adding a host
+```console
+envcli hosts add --hostid "hostid1" --totalcpu 1200 --totalmem 16785711104
+```
+
+## Listing hosts
+```console
+envcli hosts ls 
+```
+
+```console
+╭─────────┬─────────┬───────────┬─────────────┬───────────┬───────────┬─────╮
+│ HOSTID  │ STATEID │ TOTAL CPU │ TOTAL MEM   │ USAGE CPU │ USAGE MEM │ VMS │
+├─────────┼─────────┼───────────┼─────────────┼───────────┼───────────┼─────┤
+│ hostid1 │ 1       │ 1200      │ 16785711104 │ 0         │ 0         │ 0   │
+│ hostid2 │ 2       │ 1200      │ 16785711104 │ 0         │ 0         │ 0   │
+│ hostid3 │ 3       │ 1200      │ 16785711104 │ 0         │ 0         │ 0   │
+╰─────────┴─────────┴───────────┴─────────────┴───────────┴───────────┴─────╯
+```
+
+## Adding a VM 
+```console
+envcli vms add --vmid "vmid1" --totalcpu 1200 --totalmem 16785711104
+```
+
+## Listing VMs
+```console
+envcli vms ls 
+```
+
+```console
+╭───────┬─────────┬──────────┬────────┬──────────────┬───────────┬─────────────┬───────────┬───────────╮
+│ VMID  │ STATEID │ DEPLOYED │ HOSTID │ HOST STATEID │ TOTAL CPU │ TOTAL MEM   │ USAGE CPU │ USAGE MEM │
+├───────┼─────────┼──────────┼────────┼──────────────┼───────────┼─────────────┼───────────┼───────────┤
+│ vmid1 │ 1       │ false    │        │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
+│ vmid2 │ 2       │ false    │        │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
+│ vmid3 │ 3       │ false    │        │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
+╰───────┴─────────┴──────────┴────────┴──────────────┴───────────┴─────────────┴───────────┴───────────╯
+```
+
+## Bind a VM to a host
+```console
+envcli vms bind --vmid vmid1 --hostid hostid3
+```
+
+We can now see the *vmid1* VM is deployed on *hostid2*. 
+```console
+envcli vms ls 
+```
+
+```console
+╭───────┬─────────┬──────────┬─────────┬──────────────┬───────────┬─────────────┬───────────┬───────────╮
+│ VMID  │ STATEID │ DEPLOYED │ HOSTID  │ HOST STATEID │ TOTAL CPU │ TOTAL MEM   │ USAGE CPU │ USAGE MEM │
+├───────┼─────────┼──────────┼─────────┼──────────────┼───────────┼─────────────┼───────────┼───────────┤
+│ vmid1 │ 1       │ true     │ hostid3 │ 3            │ 1200      │ 16785711104 │ 0         │ 0         │
+│ vmid2 │ 2       │ false    │         │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
+│ vmid3 │ 3       │ false    │         │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
+╰───────┴─────────┴──────────┴─────────┴──────────────┴───────────┴─────────────┴───────────┴───────────╯
+```
+
+And *hostid3* has one VM.
+
+```console
+envcli hosts ls 
+```
+
+```console
+╭─────────┬─────────┬───────────┬─────────────┬───────────┬───────────┬─────╮
+│ HOSTID  │ STATEID │ TOTAL CPU │ TOTAL MEM   │ USAGE CPU │ USAGE MEM │ VMS │
+├─────────┼─────────┼───────────┼─────────────┼───────────┼───────────┼─────┤
+│ hostid1 │ 1       │ 1200      │ 16785711104 │ 0         │ 0         │ 0   │
+│ hostid2 │ 2       │ 1200      │ 16785711104 │ 0         │ 0         │ 0   │
+│ hostid3 │ 3       │ 1200      │ 16785711104 │ 0         │ 0         │ 1   │
+╰─────────┴─────────┴───────────┴─────────────┴───────────┴───────────┴─────╯
+```
+
+## Report metrics to a hosts
+
+```console
+envcli hosts report --hostid hostid1 --cpu 12 --memory 12345
+```
+
+

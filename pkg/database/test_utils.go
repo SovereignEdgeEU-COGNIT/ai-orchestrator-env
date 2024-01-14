@@ -19,7 +19,7 @@ func PrepareTestsWithPrefix(prefix string) (*Database, error) {
 	dbName := "postgres"
 	dbPrefix := prefix
 
-	db := CreateDatabase(dbHost, dbPort, dbUser, dbPassword, dbName, dbPrefix, false)
+	db := CreateDatabase(dbHost, dbPort, dbUser, dbPassword, dbName, dbPrefix)
 
 	err := db.Connect()
 	if err != nil {

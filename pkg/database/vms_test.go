@@ -16,7 +16,7 @@ func TestAddVM(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, vm)
 
-	vm = &core.VM{VMID: "test_vm_id", Hostname: "test_vm_name", CurrentCPU: 0, CurrentMemory: 0}
+	vm = &core.VM{VMID: "test_vm_id", Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
@@ -35,11 +35,11 @@ func TestVMStateMetric(t *testing.T) {
 	assert.Nil(t, err)
 	defer db.Close()
 
-	vm := &core.VM{VMID: "test_vm1_id", Hostname: "test_vm1_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	vm := &core.VM{VMID: "test_vm1_id", Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
-	vm = &core.VM{VMID: "test_vm2_id", Hostname: "test_vm2_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	vm = &core.VM{VMID: "test_vm2_id", Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
@@ -56,7 +56,7 @@ func TestVMStateMetric(t *testing.T) {
 	err = db.RemoveVM("test_vm1_id")
 	assert.Nil(t, err)
 
-	vm = &core.VM{VMID: "test_vm3_id", Hostname: "test_vm3_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	vm = &core.VM{VMID: "test_vm3_id", Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
@@ -75,7 +75,7 @@ func TestSetVMResources(t *testing.T) {
 	assert.Nil(t, err)
 	defer db.Close()
 
-	vm := &core.VM{VMID: "test_vm_id", Hostname: "test_vm_name", CurrentCPU: 0, CurrentMemory: 0}
+	vm := &core.VM{VMID: "test_vm_id", Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
@@ -85,8 +85,8 @@ func TestSetVMResources(t *testing.T) {
 	hosts, err := db.GetVMs()
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(hosts))
-	assert.Equal(t, int64(1), hosts[0].CurrentCPU)
-	assert.Equal(t, int64(2), hosts[0].CurrentMemory)
+	assert.Equal(t, int64(1), hosts[0].UsageCPU)
+	assert.Equal(t, int64(2), hosts[0].UsageMemory)
 }
 
 func TestRemoveVM(t *testing.T) {
@@ -94,7 +94,7 @@ func TestRemoveVM(t *testing.T) {
 	assert.Nil(t, err)
 	defer db.Close()
 
-	vm := &core.VM{VMID: "test_host_id", Hostname: "test_vm_name", CurrentCPU: 0.0, CurrentMemory: 0.0}
+	vm := &core.VM{VMID: "test_vm_id", Deployed: true, HostID: "test_host_id", HostStateID: 0, TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
@@ -108,4 +108,31 @@ func TestRemoveVM(t *testing.T) {
 	vms, err = db.GetVMs()
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(vms))
+}
+
+func TestBind(t *testing.T) {
+	db, err := PrepareTests()
+	assert.Nil(t, err)
+	defer db.Close()
+
+	host := &core.Host{HostID: "test_host_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
+	err = db.AddHost(host)
+	assert.Nil(t, err)
+
+	vm := &core.VM{VMID: "test_vm_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
+	err = db.AddVM(vm)
+	assert.Nil(t, err)
+
+	vm, err = db.GetVM("test_vm_id")
+	assert.Nil(t, err)
+	assert.False(t, vm.Deployed)
+
+	err = db.Bind(vm.VMID, host.HostID)
+	assert.Nil(t, err)
+
+	vm, err = db.GetVM("test_vm_id")
+	assert.Nil(t, err)
+	assert.True(t, vm.Deployed)
+	assert.Equal(t, vm.HostID, vm.HostID)
+	assert.Equal(t, vm.StateID, vm.HostStateID)
 }

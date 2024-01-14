@@ -23,7 +23,7 @@ func prepareTests(t *testing.T) (*client.EnvClient, *EnvServer, chan bool) {
 	db, err := database.PrepareTests()
 	assert.Nil(t, err)
 
-	server := CreateEnvServer(*db, TESTPORT)
+	server := CreateEnvServer(db, TESTPORT)
 	assert.Nil(t, err)
 
 	done := make(chan bool)
