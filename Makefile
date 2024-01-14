@@ -1,8 +1,8 @@
 all: build
 .PHONY: all build
 
-BUILD_IMAGE ?= cognit/envserver
-PUSH_IMAGE ?= cognit/envserver:v0.0.1
+BUILD_IMAGE ?= johan/envserver
+PUSH_IMAGE ?= johan/envserver:v0.0.1
 
 VERSION := $(shell git rev-parse --short HEAD)
 BUILDTIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
