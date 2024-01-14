@@ -36,8 +36,24 @@ source .env
 ```
 
 ## Starting an Envserver
+First start a TimescaleDB instance.
+
+```console
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=rFcLGNkgsNtksg6Pgtn9CumL4xXBQ7 --restart unless-stopped timescale/timescaledb:latest-pg16
+```
+
 ```console
 envserver start -v
+```
+
+## Docker-compose
+```console
+dockercompose up
+```
+
+To remove all data, type:
+```console
+docker-compose down --volumes
 ```
 
 ## Initialize TimescaleDB database
@@ -49,6 +65,8 @@ The database can be droped by this command:
 ```console
 envserver database drop
 ```
+
+# CLI
 
 ## Adding a host
 ```console
@@ -126,10 +144,36 @@ envcli hosts ls
 ╰─────────┴─────────┴───────────┴─────────────┴───────────┴───────────┴─────╯
 ```
 
-## Report metrics to a hosts
-
+## Report host metrics
 ```console
-envcli hosts report --hostid hostid1 --cpu 12 --memory 12345
+envcli hosts report --hostid hostid1 --cpu 701 --mem 12345678 
 ```
 
+```console
+envcli hosts ls
+```
 
+```console
+╭─────────┬─────────┬───────────┬─────────────┬───────────┬───────────┬─────╮
+│ HOSTID  │ STATEID │ TOTAL CPU │ TOTAL MEM   │ USAGE CPU │ USAGE MEM │ VMS │
+├─────────┼─────────┼───────────┼─────────────┼───────────┼───────────┼─────┤
+│ hostid1 │ 1       │ 1200      │ 16785711104 │ 701       │ 12345678  │ 0   │
+│ hostid2 │ 2       │ 1200      │ 16785711104 │ 0         │ 0         │ 0   │
+│ hostid3 │ 3       │ 1200      │ 16785711104 │ 0         │ 0         │ 1   │
+╰─────────┴─────────┴───────────┴─────────────┴───────────┴───────────┴─────╯
+```
+
+## Report VM metrics
+```console
+envcli vms report --vmid vmid1 --cpu 701 --mem 12345678 
+```
+
+```console
+╭───────┬─────────┬──────────┬─────────┬──────────────┬───────────┬─────────────┬───────────┬───────────╮
+│ VMID  │ STATEID │ DEPLOYED │ HOSTID  │ HOST STATEID │ TOTAL CPU │ TOTAL MEM   │ USAGE CPU │ USAGE MEM │
+├───────┼─────────┼──────────┼─────────┼──────────────┼───────────┼─────────────┼───────────┼───────────┤
+│ vmid1 │ 1       │ true     │ hostid3 │ 3            │ 1200      │ 16785711104 │ 701       │ 12345678  │
+│ vmid2 │ 2       │ false    │         │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
+│ vmid3 │ 3       │ false    │         │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
+╰───────┴─────────┴──────────┴─────────┴──────────────┴───────────┴─────────────┴───────────┴───────────╯
+```
