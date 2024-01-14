@@ -1,5 +1,6 @@
 The OpenNebula scheduler will send this request to the AI Orchestrator when a VM is going to be deployed.
 
+```json
 {
   "VMS": [
     {
@@ -24,9 +25,11 @@ The OpenNebula scheduler will send this request to the AI Orchestrator when a VM
     }
   ]
 }
+```
 
 The server is expecting this JSON response:
 
+```json
 {
   "VMS": [
     {
@@ -35,3 +38,4 @@ The server is expecting this JSON response:
     }
   ]
 }
+```
