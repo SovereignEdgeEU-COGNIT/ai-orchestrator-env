@@ -182,6 +182,8 @@ envcli vms report --vmid vmid1 --cpu 701 --mem 12345678
 
 # REST API
 
+## Hosts 
+
 | Method | Endpoint       | Description                           |
 |--------|----------------|---------------------------------------|
 | POST   | /hosts         | Add a new host                        |
