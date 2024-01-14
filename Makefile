@@ -25,6 +25,7 @@ test:
 	@cd pkg/core; go test -v --race
 	@cd pkg/database; go test -v --race
 	@cd pkg/server; go test -v --race
+	@cd pkg/opennebula; go test -v --race
 
 install:
 	cp ./bin/envcli /usr/local/bin
