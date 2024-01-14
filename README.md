@@ -179,3 +179,29 @@ envcli vms report --vmid vmid1 --cpu 701 --mem 12345678
 │ vmid3 │ 3       │ false    │         │ 0            │ 1200      │ 16785711104 │ 0         │ 0         │
 ╰───────┴─────────┴──────────┴─────────┴──────────────┴───────────┴─────────────┴───────────┴───────────╯
 ```
+
+# REST API
+
+| Method | Endpoint       | Description                           |
+|--------|----------------|---------------------------------------|
+| POST   | /hosts         | Add a new host                        |
+| GET    | /hosts/:id     | Retrieve a specific host by its ID    |
+| GET    | /hosts         | Retrieve all hosts                    |
+| DELETE | /hosts/:id     | Remove a specific host by its ID      |
+
+## Virtual Machines (VMs)
+
+| Method | Endpoint       | Description                           |
+|--------|----------------|---------------------------------------|
+| POST   | /vms           | Add a new virtual machine (VM)        |
+| GET    | /vms/:id       | Retrieve a specific VM by its ID      |
+| GET    | /vms           | Retrieve all VMs                      |
+| PUT    | /vms/:id/:hostid | Bind a VM to a host by their IDs    |
+| DELETE | /vms/:id       | Remove a specific VM by its ID        |
+
+## Metrics
+
+| Method | Endpoint       | Description                           |
+|--------|----------------|---------------------------------------|
+| POST   | /metrics       | Add new metrics                       |
+| GET    | /metrics       | Retrieve all metrics                  |
