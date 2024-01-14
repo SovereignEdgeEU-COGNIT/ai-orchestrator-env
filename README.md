@@ -1,3 +1,5 @@
+[![Go](https://github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/actions/workflows/go.yml/badge.svg)](https://github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/actions/workflows/go.yml)
+
 # Introduction
 This repo provides a virtual environment, functioning as a *digital twin* of a cloud-edge infrastructure, specifically designed to enable AI agents to automate and optimize IT operations. The environment enables AI agents to both operate and learn to manage IT infrastructures. 
 
