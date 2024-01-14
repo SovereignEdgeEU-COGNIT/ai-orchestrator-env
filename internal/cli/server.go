@@ -49,7 +49,7 @@ var serverStartCmd = &cobra.Command{
 
 		if InitDB {
 			err := db.Initialize()
-			CheckError(err)
+			log.WithFields(log.Fields{"Error": err}).Info("Initialized DB")
 		}
 
 		for {
