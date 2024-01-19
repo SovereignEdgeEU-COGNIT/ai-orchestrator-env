@@ -28,6 +28,21 @@ services:
     ports:
       - "${ENVSERVER_PORT}:${ENVSERVER_PORT}"
     command: sh -c "envcli server start --initdb"
+  
+  emulator_connector:
+    image: johan/envserver
+    depends_on: 
+      - envserver
+    environment:
+      ENVSERVER_TLS: "false"
+      ENVSERVER_HOST: envserver
+      ENVSERVER_PORT: ${ENVSERVER_PORT}
+      CTRLPLANE_HOST: ${CTRLPLANE_HOST}
+      CTRLPLANE_PORT: ${CTRLPLANE_PORT}
+      PROMETHEUS_HOST: ${PROMETHEUS_HOST}
+      PROMETHEUS_PORT: ${PROMETHEUS_PORT}
+      TZ: ${TZ}
+    command: sh -c "envcli connectors emulator start"
     
 volumes:
   timescaledb_data:

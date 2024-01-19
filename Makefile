@@ -11,10 +11,13 @@ GOLDFLAGS += -X 'main.BuildVersion=$(VERSION)'
 GOLDFLAGS += -X 'main.BuildTime=$(BUILDTIME)'
 
 build:
-	#@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w $(GOLDFLAGS)" -o ./bin/envcli ./cmd/main.go
 	@CGO_ENABLED=0 go build -ldflags="-s -w $(GOLDFLAGS)" -o ./bin/envcli ./cmd/main.go
 
+build_linux:
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w $(GOLDFLAGS)" -o ./bin/envcli ./cmd/main.go
+
 container:
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w $(GOLDFLAGS)" -o ./bin/envcli ./cmd/main.go
 	docker build -t $(BUILD_IMAGE) .
 
 push:

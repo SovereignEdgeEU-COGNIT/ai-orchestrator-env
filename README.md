@@ -208,3 +208,10 @@ envcli vms report --vmid vmid1 --cpu 701 --mem 12345678
 |--------|----------------|---------------------------------------|
 | POST   | /metrics       | Add new metrics                       |
 | GET    | /metrics       | Retrieve all metrics                  |
+
+
+# Emulator testbed
+
+```console
+envcli connectors emulator start
+```

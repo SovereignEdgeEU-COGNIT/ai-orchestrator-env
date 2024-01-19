@@ -49,9 +49,9 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "cogenv",
-	Short: "Cogenv CLI tool",
-	Long:  "Cogenv CLI tool",
+	Use:   "envcli",
+	Short: "Cognit Environment CLI tool",
+	Long:  "Cogenv Environment CLI tool",
 }
 
 func Execute() {

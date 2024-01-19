@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -100,7 +99,4 @@ func parseEnv() {
 		PrometheusPort, err = strconv.Atoi(prometheusPortStr)
 		CheckError(err)
 	}
-
-	fmt.Println(PrometheusHost)
-	fmt.Println(PrometheusPort)
 }
