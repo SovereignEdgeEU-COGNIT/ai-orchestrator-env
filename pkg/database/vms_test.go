@@ -79,13 +79,13 @@ func TestSetVMResources(t *testing.T) {
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
-	err = db.SetVMResources(vm.VMID, int64(1), int64(2))
+	err = db.SetVMResources(vm.VMID, float64(1), int64(2))
 	assert.Nil(t, err)
 
 	hosts, err := db.GetVMs()
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(hosts))
-	assert.Equal(t, int64(1), hosts[0].UsageCPU)
+	assert.Equal(t, float64(1), hosts[0].UsageCPU)
 	assert.Equal(t, int64(2), hosts[0].UsageMemory)
 }
 
@@ -135,4 +135,13 @@ func TestBind(t *testing.T) {
 	assert.True(t, vm.Deployed)
 	assert.Equal(t, vm.HostID, vm.HostID)
 	assert.Equal(t, vm.StateID, vm.HostStateID)
+
+	err = db.Unbind(vm.VMID)
+	assert.Nil(t, err)
+
+	vm, err = db.GetVM("test_vm_id")
+	assert.Nil(t, err)
+	assert.Equal(t, "", vm.HostID)
+	assert.Equal(t, 0, vm.HostStateID)
+	assert.False(t, vm.Deployed)
 }

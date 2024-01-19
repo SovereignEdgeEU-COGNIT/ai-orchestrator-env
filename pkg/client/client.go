@@ -261,3 +261,18 @@ func (client *EnvClient) Bind(vmID, hostID string) error {
 
 	return nil
 }
+
+func (client *EnvClient) Unbind(vmID, hostID string) error {
+	resp, err := client.restyClient.R().
+		Delete(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/vms/" + vmID + "/" + hostID)
+	if err != nil {
+		return err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

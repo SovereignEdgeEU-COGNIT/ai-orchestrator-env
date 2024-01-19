@@ -79,13 +79,13 @@ func TestSetHostResources(t *testing.T) {
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 
-	err = db.SetHostResources(host.HostID, int64(1), int64(2))
+	err = db.SetHostResources(host.HostID, float64(1), int64(2))
 	assert.Nil(t, err)
 
 	hosts, err := db.GetHosts()
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(hosts))
-	assert.Equal(t, int64(1), hosts[0].UsageCPU)
+	assert.Equal(t, float64(1), hosts[0].UsageCPU)
 	assert.Equal(t, int64(2), hosts[0].UsageMemory)
 }
 

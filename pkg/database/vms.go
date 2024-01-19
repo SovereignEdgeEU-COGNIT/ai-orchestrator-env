@@ -53,7 +53,7 @@ func (db *Database) parseVMs(rows *sql.Rows) ([]*core.VM, error) {
 		var hostStateID int
 		var totalCPU int64
 		var totalMemory int64
-		var usageCPU int64
+		var usageCPU float64
 		var usageMemory int64
 		if err := rows.Scan(&vmID, &stateID, &deployed, &hostID, &hostStateID, &totalCPU, &totalMemory, &usageCPU, &usageMemory); err != nil {
 			return nil, err
@@ -67,7 +67,7 @@ func (db *Database) parseVMs(rows *sql.Rows) ([]*core.VM, error) {
 	return vms, nil
 }
 
-func (db *Database) SetVMResources(vmID string, usageCPU, usageMemory int64) error {
+func (db *Database) SetVMResources(vmID string, usageCPU float64, usageMemory int64) error {
 	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET USAGE_CPU = $1, USAGE_MEM = $2 WHERE VMID = $3`
 	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, vmID)
 	if err != nil {
@@ -132,6 +132,16 @@ func (db *Database) Bind(vmID, hostID string) error {
 
 	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET DEPLOYED = $1, HOSTID = $2, HOSTSTATEID = $3 WHERE VMID = $4`
 	_, err = db.postgresql.Exec(sqlStatement, true, host.HostID, host.StateID, vmID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) Unbind(vmID string) error {
+	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET DEPLOYED = $1, HOSTID = $2, HOSTSTATEID = $3 WHERE VMID = $4`
+	_, err := db.postgresql.Exec(sqlStatement, false, "", 0, vmID)
 	if err != nil {
 		return err
 	}

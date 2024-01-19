@@ -134,7 +134,7 @@ var reportVMMetricCmd = &cobra.Command{
 			log.Fatal("VM Id is required")
 		}
 
-		usageCPU, err := strconv.ParseInt(UsageCPU, 10, 64)
+		usageCPU, err := strconv.ParseFloat(UsageCPU, 64)
 		CheckError(err)
 
 		usageMem, err := strconv.ParseInt(UsageMemory, 10, 64)

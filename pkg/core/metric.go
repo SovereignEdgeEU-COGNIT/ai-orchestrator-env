@@ -7,7 +7,7 @@ import (
 
 type Metric struct {
 	Timestamp time.Time `json:"timestamp"`
-	CPU       int64     `json:"cpu"`
+	CPU       float64   `json:"cpu"`
 	Memory    int64     `json:"memory"`
 }
 

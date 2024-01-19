@@ -123,6 +123,15 @@ func TestBind(t *testing.T) {
 	assert.Equal(t, hostFromDB.HostID, vm.HostID)
 	assert.Equal(t, hostFromDB.StateID, vm.HostStateID)
 
+	err = client.Unbind("vm1", "host1")
+	assert.Nil(t, err)
+
+	vm, err = client.GetVM("vm1")
+	assert.Nil(t, err)
+	assert.False(t, vm.Deployed)
+	assert.Equal(t, "", vm.HostID)
+	assert.Equal(t, 0, vm.HostStateID)
+
 	server.Shutdown()
 	<-done
 }

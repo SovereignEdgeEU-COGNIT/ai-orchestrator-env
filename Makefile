@@ -11,6 +11,7 @@ GOLDFLAGS += -X 'main.BuildVersion=$(VERSION)'
 GOLDFLAGS += -X 'main.BuildTime=$(BUILDTIME)'
 
 build:
+	#@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w $(GOLDFLAGS)" -o ./bin/envcli ./cmd/main.go
 	@CGO_ENABLED=0 go build -ldflags="-s -w $(GOLDFLAGS)" -o ./bin/envcli ./cmd/main.go
 
 container:
@@ -25,7 +26,6 @@ test:
 	@cd pkg/core; go test -v --race
 	@cd pkg/database; go test -v --race
 	@cd pkg/server; go test -v --race
-	@cd pkg/opennebula; go test -v --race
 
 install:
 	cp ./bin/envcli /usr/local/bin

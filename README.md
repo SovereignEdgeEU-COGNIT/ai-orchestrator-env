@@ -193,13 +193,14 @@ envcli vms report --vmid vmid1 --cpu 701 --mem 12345678
 
 ## Virtual Machines (VMs)
 
-| Method | Endpoint       | Description                           |
-|--------|----------------|---------------------------------------|
-| POST   | /vms           | Add a new virtual machine (VM)        |
-| GET    | /vms/:id       | Retrieve a specific VM by its ID      |
-| GET    | /vms           | Retrieve all VMs                      |
-| PUT    | /vms/:id/:hostid | Bind a VM to a host by their IDs    |
-| DELETE | /vms/:id       | Remove a specific VM by its ID        |
+| Method | Endpoint         | Description                           |
+|--------|------------------|---------------------------------------|
+| POST   | /vms             | Add a new virtual machine (VM)        |
+| GET    | /vms/:id         | Retrieve a specific VM by its ID      |
+| GET    | /vms             | Retrieve all VMs                      |
+| PUT    | /vms/:id/:hostid | Bind a VM to a host by their IDs      |
+| DELETE | /vms/:id/:hostid | Unbind a VM from a host               |
+| DELETE | /vms/:id         | Remove a specific VM by its ID        |
 
 ## Metrics
 

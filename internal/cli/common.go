@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -24,9 +25,9 @@ func parseDBEnv() {
 	}
 
 	var err error
-	DBPortEnvStr := os.Getenv("ENVSERVER__DB_PORT")
-	if DBPortEnvStr != "" {
-		DBPort, err = strconv.Atoi(DBPortEnvStr)
+	dbPortEnvStr := os.Getenv("ENVSERVER__DB_PORT")
+	if dbPortEnvStr != "" {
+		DBPort, err = strconv.Atoi(dbPortEnvStr)
 		CheckError(err)
 	}
 
@@ -36,11 +37,6 @@ func parseDBEnv() {
 
 	if DBPassword == "" {
 		DBPassword = os.Getenv("ENVSERVER_DB_PASSWORD")
-	}
-
-	initDBStr := os.Getenv("ENVSERVER_INITDB")
-	if initDBStr == "true" {
-		InitDB = true
 	}
 }
 
@@ -88,4 +84,23 @@ func parseEnv() {
 		UseTLS = false
 		Insecure = true
 	}
+
+	CtrlPlaneHost = os.Getenv("CTRLPLANE_HOST")
+
+	ctrlPlanePortStr := os.Getenv("CTRLPLANE_PORT")
+	if ctrlPlanePortStr != "" {
+		CtrlPlanePort, err = strconv.Atoi(ctrlPlanePortStr)
+		CheckError(err)
+	}
+
+	PrometheusHost = os.Getenv("PROMETHEUS_HOST")
+
+	prometheusPortStr := os.Getenv("PROMETHEUS_PORT")
+	if prometheusPortStr != "" {
+		PrometheusPort, err = strconv.Atoi(prometheusPortStr)
+		CheckError(err)
+	}
+
+	fmt.Println(PrometheusHost)
+	fmt.Println(PrometheusPort)
 }

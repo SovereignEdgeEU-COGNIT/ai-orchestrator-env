@@ -102,3 +102,27 @@ func (server *EnvServer) handleBindRequest(c *gin.Context) {
 
 	log.WithFields(log.Fields{"VMID": vmID, "HostID": hostID}).Debug("Binding VM to host")
 }
+
+func (server *EnvServer) handleUnbindRequest(c *gin.Context) {
+	vmID := c.Param("id")
+	if vmID == "" {
+		log.WithFields(log.Fields{"Error": "Paramater id (vmId) must be specified"}).Error("Failed to unbind VM from host")
+		c.String(http.StatusBadRequest, "Paramater id (vmId) must be specified")
+		return
+	}
+	hostID := c.Param("hostid")
+	if hostID == "" {
+		log.WithFields(log.Fields{"Error": "Paramater hostid must be specified"}).Error("Failed to unbind VM from host")
+		c.String(http.StatusBadRequest, "Paramater hostid must be specified")
+		return
+	}
+
+	err := server.db.Unbind(vmID)
+	if err != nil {
+		log.WithFields(log.Fields{"Error": err}).Error("Failed to unbind VM from host")
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	log.WithFields(log.Fields{"VMID": vmID, "HostID": hostID}).Debug("Unbinding VM from host")
+}

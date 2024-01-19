@@ -50,7 +50,7 @@ func (db *Database) parseHosts(rows *sql.Rows) ([]*core.Host, error) {
 		var stateID int
 		var totalCPU int64
 		var totalMem int64
-		var usageCPU int64
+		var usageCPU float64
 		var usageMem int64
 
 		if err := rows.Scan(&hostID, &stateID, &totalCPU, &totalMem, &usageCPU, &usageMem); err != nil {
@@ -71,7 +71,7 @@ func (db *Database) parseHosts(rows *sql.Rows) ([]*core.Host, error) {
 	return hosts, nil
 }
 
-func (db *Database) SetHostResources(hostID string, usageCPU, usageMemory int64) error {
+func (db *Database) SetHostResources(hostID string, usageCPU float64, usageMemory int64) error {
 	sqlStatement := `UPDATE ` + db.dbPrefix + `HOSTS SET USAGE_CPU = $1, USAGE_MEM = $2 WHERE HOSTID = $3`
 	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, hostID)
 	if err != nil {

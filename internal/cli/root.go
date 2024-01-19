@@ -34,6 +34,13 @@ var TotalMemory string
 var UsageCPU string
 var UsageMemory string
 var VMID string
+var CtrlPlaneHost string
+var CtrlPlanePort int
+var PrometheusHost string
+var PrometheusPort int
+var Filename string
+var MetricType string
+var ID string
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Verbose (debugging)")

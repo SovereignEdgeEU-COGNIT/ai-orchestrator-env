@@ -51,6 +51,7 @@ func (server *EnvServer) setupRoutes() {
 	server.ginHandler.GET("/vms/:id", server.handleGetVMRequest)
 	server.ginHandler.GET("/vms", server.handleGetVMsRequest)
 	server.ginHandler.PUT("/vms/:id/:hostid", server.handleBindRequest)
+	server.ginHandler.DELETE("/vms/:id/:hostid", server.handleUnbindRequest)
 	server.ginHandler.DELETE("/vms/:id", server.handleRemoveVMRequest)
 	server.ginHandler.POST("/metrics", server.handleAddMetricRequest)
 	server.ginHandler.GET("/metrics", server.handleGetMetricsRequest)

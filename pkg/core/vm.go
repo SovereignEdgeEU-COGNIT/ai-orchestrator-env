@@ -3,15 +3,15 @@ package core
 import "encoding/json"
 
 type VM struct {
-	VMID        string `json:"vmid"`
-	StateID     int    `json:"stateid"`
-	Deployed    bool   `json:"deployed"`
-	HostID      string `json:"hostid"`
-	HostStateID int    `json:"hoststateid"`
-	TotalCPU    int64  `json:"total_cpu"`
-	TotalMemory int64  `json:"total_memory"`
-	UsageCPU    int64  `json:"usage_cpu"`
-	UsageMemory int64  `json:"usage_memory"`
+	VMID        string  `json:"vmid"`
+	StateID     int     `json:"stateid"`
+	Deployed    bool    `json:"deployed"`
+	HostID      string  `json:"hostid"`
+	HostStateID int     `json:"hoststateid"`
+	TotalCPU    int64   `json:"total_cpu"`
+	TotalMemory int64   `json:"total_memory"`
+	UsageCPU    float64 `json:"usage_cpu"`
+	UsageMemory int64   `json:"usage_memory"`
 }
 
 func ConvertJSONToVM(jsonString string) (*VM, error) {

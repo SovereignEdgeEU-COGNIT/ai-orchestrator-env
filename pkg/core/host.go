@@ -3,13 +3,13 @@ package core
 import "encoding/json"
 
 type Host struct {
-	HostID      string `json:"hostid"`
-	StateID     int    `json:"stateid"`
-	TotalCPU    int64  `json:"total_cpu"`
-	TotalMemory int64  `json:"total_memory"`
-	UsageCPU    int64  `json:"usage_cpu"`
-	UsageMemory int64  `json:"usage_memory"`
-	VMs         int    `json:"vms"`
+	HostID      string  `json:"hostid"`
+	StateID     int     `json:"stateid"`
+	TotalCPU    int64   `json:"total_cpu"`
+	TotalMemory int64   `json:"total_memory"`
+	UsageCPU    float64 `json:"usage_cpu"`
+	UsageMemory int64   `json:"usage_memory"`
+	VMs         int     `json:"vms"`
 }
 
 func ConvertJSONToHost(jsonString string) (*Host, error) {
