@@ -12,20 +12,33 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type SRInfo struct {
+	IP       string   `json:"ip"`
+	Name     string   `json:"name"`
+	Port     int      `json:"port"`
+	Flavor   string   `json:"flavor"`
+	HostInfo HostInfo `json:"host_info"`
+}
+
 type HostInfo struct {
 	IP   string `json:"ip"`
 	Name string `json:"name"`
 	Port int    `json:"port"`
 }
 
-type EmulatedHost struct {
-	HostInfo HostInfo `json:"host"`
-	Flavors  []string `json:"flavors"`
+type NodeType struct {
+	Host HostInfo `json:"Host"`
+	SR   SRInfo   `json:"SR"`
 }
+
+/* type EmulatedHost struct {
+	HostInfo SRInfo `json:"host"`
+	Flavors  []string `json:"flavors"`
+} */
 
 type EmulatorConnector struct {
 	ctrlPlaneHost  string
-	ctrolPlanePort int
+	ctrlPlanePort  int
 	envServerHost  string
 	envServerPort  int
 	prometheusHost string
@@ -46,7 +59,7 @@ func CreateEmulatorConnector(ctrlPlaneHost string, ctrlPlanePort int, envServerH
 
 	return &EmulatorConnector{
 		ctrlPlaneHost:  ctrlPlaneHost,
-		ctrolPlanePort: ctrlPlanePort,
+		ctrlPlanePort:  ctrlPlanePort,
 		envServerHost:  envServerHost,
 		envServerPort:  envServerPort,
 		prometheusHost: prometheusHost,
@@ -66,21 +79,14 @@ func checkStatus(statusCode int, body string) error {
 func (c *EmulatorConnector) sync() error {
 	prometheusURL := "http://" + c.prometheusHost + ":" + strconv.Itoa(c.prometheusPort)
 
-	resp, err := c.client.R().
-		Get("http://" + c.ctrlPlaneHost + ":" + strconv.Itoa(c.ctrolPlanePort) + "/hosts/flavor")
-	if err != nil {
-		return err
+	emulatedSRs, emulatedHosts, err := getEmulatorState(c)
+
+	if emulatedHosts != nil {
+		log.WithFields(log.Fields{"hosts": emulatedHosts}).Info("Emulated hosts currently unused, only partially implemented the SR and Host sync")
 	}
 
-	err = checkStatus(resp.StatusCode(), string(resp.Body()))
 	if err != nil {
-		return err
-	}
-
-	var emulatedHosts []EmulatedHost
-	err = json.Unmarshal(resp.Body(), &emulatedHosts)
-	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("Error unmarshalling response")
+		log.WithFields(log.Fields{"error": err}).Error("Error fetching emulator state")
 		return err
 	}
 
@@ -90,9 +96,9 @@ func (c *EmulatorConnector) sync() error {
 		return err
 	}
 
-	hostMaps := make(map[string]bool)
+	srMap := make(map[string]bool)
 	for _, host := range hosts {
-		hostMaps[host.HostID] = true
+		srMap[host.HostID] = true
 	}
 
 	vms, err := c.envClient.GetVMs()
@@ -102,35 +108,35 @@ func (c *EmulatorConnector) sync() error {
 	}
 
 	vmMaps := make(map[string]bool)
-	for _, emulatedHost := range emulatedHosts {
-		for _, flavor := range emulatedHost.Flavors {
-			vmMaps[flavor] = true
-		}
+	for _, emulatedSR := range emulatedSRs {
+		vmMaps[emulatedSR.Flavor] = true
+		/* for _, flavor := range emulatedHost.Flavors {
+		} */
 	}
 
 	// Add missing hosts
-	for _, emulatedHost := range emulatedHosts {
-		if _, ok := hostMaps[emulatedHost.HostInfo.Name]; !ok {
-			log.WithFields(log.Fields{"host": emulatedHost.HostInfo.Name}).Info("Adding host to env server")
-			host, err := c.envClient.GetHost(emulatedHost.HostInfo.Name)
+	for _, emulatedSR := range emulatedSRs {
+		if _, ok := srMap[emulatedSR.Name]; !ok {
+			log.WithFields(log.Fields{"host": emulatedSR.Name}).Info("Adding host to env server")
+			host, err := c.envClient.GetHost(emulatedSR.Name)
 			if err != nil {
 				log.WithFields(log.Fields{"error": err}).Error("Error fetching host from env server")
 				return err
 			}
 			if host == nil {
-				totalCPU, err := GetTotalCPU(prometheusURL, emulatedHost.HostInfo.Name)
+				totalCPU, err := GetTotalCPU(prometheusURL, emulatedSR.Name)
 				if err != nil {
 					log.WithFields(log.Fields{"error": err}).Error("Error fetching total CPU")
 					return err
 				}
 
-				totalMemory, err := GetTotalMemory(prometheusURL, emulatedHost.HostInfo.Name)
+				totalMemory, err := GetTotalMemory(prometheusURL, emulatedSR.Name)
 				if err != nil {
 					log.WithFields(log.Fields{"error": err}).Error("Error fetching total memory")
 					return err
 				}
 
-				host := &core.Host{HostID: emulatedHost.HostInfo.Name, TotalCPU: totalCPU, TotalMemory: totalMemory}
+				host := &core.Host{HostID: emulatedSR.Name, TotalCPU: totalCPU, TotalMemory: totalMemory}
 
 				err = c.envClient.AddHost(host)
 				if err != nil {
@@ -143,7 +149,7 @@ func (c *EmulatorConnector) sync() error {
 
 	// Remove hosts that are not in the emulator
 	for _, host := range hosts {
-		if _, ok := hostMaps[host.HostID]; !ok {
+		if _, ok := srMap[host.HostID]; !ok {
 			log.WithFields(log.Fields{"host": host.HostID}).Info("Removing host from env server")
 			err = c.envClient.RemoveHost(host.HostID)
 			if err != nil {
@@ -155,30 +161,30 @@ func (c *EmulatorConnector) sync() error {
 	}
 
 	// Add VMs
-	for _, emulatedHost := range emulatedHosts {
-		for _, flavor := range emulatedHost.Flavors {
-			vm, err := c.envClient.GetVM(flavor)
+	for _, emulatedSR := range emulatedSRs {
+		//for _, flavor := range emulatedSR.Flavors {
+		vm, err := c.envClient.GetVM(emulatedSR.Flavor)
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Error("Error fetching VM from env server")
+			return err
+		}
+		if vm == nil {
+			vm := &core.VM{VMID: emulatedSR.Flavor}
+			err = c.envClient.AddVM(vm)
 			if err != nil {
-				log.WithFields(log.Fields{"error": err}).Error("Error fetching VM from env server")
+				log.WithFields(log.Fields{"error": err}).Error("Error adding VM to env server")
 				return err
 			}
-			if vm == nil {
-				vm := &core.VM{VMID: flavor}
-				err = c.envClient.AddVM(vm)
-				if err != nil {
-					log.WithFields(log.Fields{"error": err}).Error("Error adding VM to env server")
-					return err
-				}
 
-				err = c.envClient.Bind(vm.VMID, emulatedHost.HostInfo.Name)
-				if err != nil {
-					log.WithFields(log.Fields{"error": err}).Error("Error binding VM to host")
-					return err
-				}
-
-				log.WithFields(log.Fields{"VMID": flavor, "HostID": vm.HostID}).Info("Adding VM to env server")
+			err = c.envClient.Bind(vm.VMID, emulatedSR.Name)
+			if err != nil {
+				log.WithFields(log.Fields{"error": err}).Error("Error binding VM to host")
+				return err
 			}
+
+			log.WithFields(log.Fields{"VMID": emulatedSR.Flavor, "HostID": vm.HostID}).Info("Adding VM to env server")
 		}
+		//}
 	}
 
 	// Remove VMs that are not found in the emulator
@@ -194,6 +200,53 @@ func (c *EmulatorConnector) sync() error {
 	}
 
 	return nil
+}
+
+func getEmulatorState(c *EmulatorConnector) ([]*SRInfo, []*HostInfo, error) {
+	nodeTypes, err := listEmulatorNodes(c, "sr")
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	emulatedSRs := make([]*SRInfo, 0, len(nodeTypes))
+	for _, nodeType := range nodeTypes {
+		emulatedSRs = append(emulatedSRs, &nodeType.SR)
+	}
+
+	nodeTypes, err = listEmulatorNodes(c, "host")
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	emulatedHosts := make([]*HostInfo, 0, len(nodeTypes))
+	for _, nodeType := range nodeTypes {
+		emulatedHosts = append(emulatedHosts, &nodeType.Host)
+	}
+
+	return emulatedSRs, emulatedHosts, nil
+}
+
+func listEmulatorNodes(c *EmulatorConnector, nodeType string) ([]NodeType, error) {
+	resp, err := c.client.R().
+		Get("http://" + c.ctrlPlaneHost + ":" + strconv.Itoa(c.ctrlPlanePort) + "/list?node_type=" + nodeType)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkStatus(resp.StatusCode(), string(resp.Body()))
+	if err != nil {
+		return nil, err
+	}
+
+	var nodeTypes []NodeType
+	err = json.Unmarshal(resp.Body(), &nodeTypes)
+	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("Error unmarshalling response")
+		return nil, err
+	}
+	return nodeTypes, nil
 }
 
 func (c *EmulatorConnector) fetchMetrics() error {
@@ -213,36 +266,43 @@ func (c *EmulatorConnector) fetchMetrics() error {
 
 	for _, host := range hosts {
 		hostMetric, err := GetFlavourMetricForHost(prometheusURL, host.HostID)
-		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Error fetching flavour metric")
-			return err
-		}
-		err = c.envClient.AddMetric(host.HostID, core.HostType, &core.Metric{Timestamp: hostMetric.Timestamp, CPU: hostMetric.CPURate, Memory: hostMetric.MemoryUsage})
-		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Error adding metric to env server")
-			return err
+
+		if err == nil {
+			err = c.envClient.AddMetric(host.HostID, core.HostType, &core.Metric{Timestamp: hostMetric.Timestamp, CPU: hostMetric.CPURate, Memory: hostMetric.MemoryUsage})
+
+			if err != nil {
+				log.WithFields(log.Fields{"error": err}).Error("Error adding metric to env server")
+			}
+		} else {
+			log.WithFields(log.Fields{"error": err}).Error("Error fetching flavour metric for host")
 		}
 	}
 
 	for _, vm := range vms {
 		hostMetric, err := GetFlavourMetricForHost(prometheusURL, vm.HostID) // Assume one VM per host
-		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Error fetching flavour metric")
-			return err
-		}
-		err = c.envClient.AddMetric(vm.VMID, core.VMType, &core.Metric{Timestamp: hostMetric.Timestamp, CPU: hostMetric.CPURate, Memory: hostMetric.MemoryUsage})
-		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Error adding metric to env server")
-			return err
+
+		if err == nil {
+			err = c.envClient.AddMetric(vm.VMID, core.VMType, &core.Metric{Timestamp: hostMetric.Timestamp, CPU: hostMetric.CPURate, Memory: hostMetric.MemoryUsage})
+
+			if err != nil {
+				log.WithFields(log.Fields{"error": err}).Error("Error adding metric to env server")
+			}
+		} else {
+			log.WithFields(log.Fields{"error": err}).Error("Error fetching flavour metric for VM")
 		}
 	}
 
-	return nil
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+
 }
 
 func (c *EmulatorConnector) Start() {
 	for {
-		log.WithFields(log.Fields{"CtrlPlaneHost": c.ctrlPlaneHost, "CtrlPlanePort": c.ctrolPlanePort, "EnvServerHost": c.envServerHost, "EnvServerPort": c.envServerPort, "PrometheusHost": c.prometheusHost, "PrometheusPort": c.prometheusPort}).Info("Syncing")
+		log.WithFields(log.Fields{"CtrlPlaneHost": c.ctrlPlaneHost, "CtrlPlanePort": c.ctrlPlanePort, "EnvServerHost": c.envServerHost, "EnvServerPort": c.envServerPort, "PrometheusHost": c.prometheusHost, "PrometheusPort": c.prometheusPort}).Info("Syncing")
 		err := c.sync()
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Error("Error syncing data")
