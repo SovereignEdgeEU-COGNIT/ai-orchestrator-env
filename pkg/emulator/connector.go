@@ -144,6 +144,8 @@ func (c *EmulatorConnector) sync() error {
 					return err
 				}
 			}
+		} else {
+			log.WithFields(log.Fields{"host": emulatedSR.Name}).Info("updating host in env server")
 		}
 	}
 
@@ -163,13 +165,14 @@ func (c *EmulatorConnector) sync() error {
 	// Add VMs
 	for _, emulatedSR := range emulatedSRs {
 		//for _, flavor := range emulatedSR.Flavors {
-		vm, err := c.envClient.GetVM(emulatedSR.Flavor)
+		name := emulatedSR.Name + "_" + emulatedSR.Flavor
+		vm, err := c.envClient.GetVM(name)
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Error("Error fetching VM from env server")
 			return err
 		}
 		if vm == nil {
-			vm := &core.VM{VMID: emulatedSR.Flavor}
+			vm := &core.VM{VMID: name}
 			err = c.envClient.AddVM(vm)
 			if err != nil {
 				log.WithFields(log.Fields{"error": err}).Error("Error adding VM to env server")
@@ -182,7 +185,7 @@ func (c *EmulatorConnector) sync() error {
 				return err
 			}
 
-			log.WithFields(log.Fields{"VMID": emulatedSR.Flavor, "HostID": vm.HostID}).Info("Adding VM to env server")
+			log.WithFields(log.Fields{"VMID": vm.VMID, "HostID": vm.HostID}).Info("Adding VM to env server")
 		}
 		//}
 	}
@@ -202,16 +205,16 @@ func (c *EmulatorConnector) sync() error {
 	return nil
 }
 
-func getEmulatorState(c *EmulatorConnector) ([]*SRInfo, []*HostInfo, error) {
+func getEmulatorState(c *EmulatorConnector) ([]SRInfo, []HostInfo, error) {
 	nodeTypes, err := listEmulatorNodes(c, "sr")
 
 	if err != nil {
 		return nil, nil, err
 	}
 
-	emulatedSRs := make([]*SRInfo, 0, len(nodeTypes))
-	for _, nodeType := range nodeTypes {
-		emulatedSRs = append(emulatedSRs, &nodeType.SR)
+	emulatedSRs := make([]SRInfo, len(nodeTypes))
+	for i, nodeType := range nodeTypes {
+		emulatedSRs[i] = nodeType.SR
 	}
 
 	nodeTypes, err = listEmulatorNodes(c, "host")
@@ -220,9 +223,9 @@ func getEmulatorState(c *EmulatorConnector) ([]*SRInfo, []*HostInfo, error) {
 		return nil, nil, err
 	}
 
-	emulatedHosts := make([]*HostInfo, 0, len(nodeTypes))
-	for _, nodeType := range nodeTypes {
-		emulatedHosts = append(emulatedHosts, &nodeType.Host)
+	emulatedHosts := make([]HostInfo, len(nodeTypes))
+	for i, nodeType := range nodeTypes {
+		emulatedHosts[i] = nodeType.Host
 	}
 
 	return emulatedSRs, emulatedHosts, nil
