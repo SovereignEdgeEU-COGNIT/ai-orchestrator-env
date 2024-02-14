@@ -48,7 +48,7 @@ func (db *Database) parseHosts(rows *sql.Rows) ([]*core.Host, error) {
 	for rows.Next() {
 		var hostID string
 		var stateID int
-		var totalCPU int64
+		var totalCPU float64
 		var totalMem int64
 		var usageCPU float64
 		var usageMem int64

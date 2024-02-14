@@ -51,7 +51,7 @@ func (db *Database) parseVMs(rows *sql.Rows) ([]*core.VM, error) {
 		var deployed bool
 		var hostID string
 		var hostStateID int
-		var totalCPU int64
+		var totalCPU float64
 		var totalMemory int64
 		var usageCPU float64
 		var usageMemory int64

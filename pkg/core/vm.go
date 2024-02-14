@@ -8,7 +8,7 @@ type VM struct {
 	Deployed    bool    `json:"deployed"`
 	HostID      string  `json:"hostid"`
 	HostStateID int     `json:"hoststateid"`
-	TotalCPU    int64   `json:"total_cpu"`
+	TotalCPU    float64 `json:"total_cpu"`
 	TotalMemory int64   `json:"total_memory"`
 	UsageCPU    float64 `json:"usage_cpu"`
 	UsageMemory int64   `json:"usage_memory"`
