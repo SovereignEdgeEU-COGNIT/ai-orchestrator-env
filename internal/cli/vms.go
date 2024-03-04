@@ -59,7 +59,7 @@ var addVMCmd = &cobra.Command{
 
 		client := client.CreateEnvClient(ServerHost, ServerPort, Insecure)
 
-		totalCPU, err := strconv.ParseInt(TotalCPU, 10, 64)
+		totalCPU, err := strconv.ParseFloat(TotalCPU, 64)
 		CheckError(err)
 
 		totalMem, err := strconv.ParseInt(TotalMemory, 10, 64)

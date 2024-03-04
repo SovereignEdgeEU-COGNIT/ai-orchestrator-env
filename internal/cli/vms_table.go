@@ -31,7 +31,7 @@ func printVMsTable(vms []*core.VM) {
 			termenv.String(strconv.FormatBool(vm.Deployed)).Foreground(theme.ColorBlue),
 			termenv.String(vm.HostID).Foreground(theme.ColorBlue),
 			termenv.String(strconv.Itoa(vm.HostStateID)).Foreground(theme.ColorViolet),
-			termenv.String(strconv.FormatInt(vm.TotalCPU, 10)).Foreground(theme.ColorMagenta),
+			termenv.String(strconv.FormatFloat(vm.TotalCPU, 'f', -1, 64)).Foreground(theme.ColorMagenta),
 			termenv.String(strconv.FormatInt(vm.TotalMemory, 10)).Foreground(theme.ColorMagenta),
 			termenv.String(strconv.FormatFloat(vm.UsageCPU, 'f', -1, 64)).Foreground(theme.ColorGreen),
 			termenv.String(strconv.FormatInt(vm.UsageMemory, 10)).Foreground(theme.ColorGreen),

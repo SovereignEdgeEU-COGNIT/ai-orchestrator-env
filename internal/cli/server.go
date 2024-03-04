@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/database"
+	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/opennebula"
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -52,12 +53,31 @@ var serverStartCmd = &cobra.Command{
 			log.WithFields(log.Fields{"Error": err}).Info("Initialized DB")
 		}
 
-		for {
-			err := server.ServeForever()
-			if err != nil {
-				log.WithFields(log.Fields{"Error": err}).Error("Failed to start Env server")
-				time.Sleep(1 * time.Second)
+		go func() {
+			for {
+				err := server.ServeForever()
+				if err != nil {
+					log.WithFields(log.Fields{"Error": err}).Error("Failed to start Env server")
+					time.Sleep(1 * time.Second)
+				}
 			}
-		}
+		}()
+
+		log.WithFields(log.Fields{"Port": ServerPort}).Info("Started Env server")
+		integrationServer := opennebula.CreateIntegrationServer(4567)
+
+		go func() {
+			for {
+				err := integrationServer.ServeForever()
+				if err != nil {
+					log.WithFields(log.Fields{"Error": err}).Error("Failed to start Integration server")
+					time.Sleep(1 * time.Second)
+				}
+			}
+		}()
+
+		log.WithFields(log.Fields{"Port": 4567}).Info("Started Integration server")
+
+		select {}
 	},
 }

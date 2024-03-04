@@ -203,11 +203,11 @@ func getCPURateForHost(prometheusURL, host string) (time.Time, float64, error) {
 	return timestamp, cpuRate, nil
 }
 
-func GetTotalCPU(prometheusURL, host string) (int64, error) {
+func GetTotalCPU(prometheusURL, host string) (float64, error) {
 	// TODO The query machine_cpu_cores return the info below, but we need to map instance to host
 	// machine_cpu_cores{boot_id="13156795-2d5e-4745-8dca-5267d7027ba4", instance="cadvisor:8080", job="cadvisor1", machine_id="28cf4e1904244c5d92a327cf54597d65", system_uuid="28cf4e19-0424-4c5d-92a3-27cf54597d65"}
 	// machine_cpu_cores{boot_id="d9461eb7-1525-4328-8bb6-3fe40d8cf28c", instance="194.28.122.123:8080", job="cadvisor2", machine_id="1f1d300b5e074b768d1f1bcb3bf12220", system_uuid="1f1d300b-5e07-4b76-8d1f-1bcb3bf12220"}
-	return 5, nil
+	return 5.0, nil
 }
 
 func GetTotalMemory(prometheusURL, host string) (int64, error) {

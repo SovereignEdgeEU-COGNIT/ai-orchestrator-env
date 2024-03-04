@@ -26,7 +26,7 @@ func printHostsTable(hosts []*core.Host) {
 		row := []interface{}{
 			termenv.String(host.HostID).Foreground(theme.ColorCyan),
 			termenv.String(strconv.Itoa(host.StateID)).Foreground(theme.ColorViolet),
-			termenv.String(strconv.FormatInt(host.TotalCPU, 10)).Foreground(theme.ColorMagenta),
+			termenv.String(strconv.FormatFloat(host.TotalCPU, 'f', -1, 64)).Foreground(theme.ColorMagenta),
 			termenv.String(strconv.FormatInt(host.TotalMemory, 10)).Foreground(theme.ColorMagenta),
 			termenv.String(strconv.FormatFloat(host.UsageCPU, 'f', -1, 64)).Foreground(theme.ColorGreen),
 			termenv.String(strconv.FormatInt(host.UsageMemory, 10)).Foreground(theme.ColorGreen),
