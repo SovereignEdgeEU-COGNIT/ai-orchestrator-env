@@ -92,7 +92,7 @@ func (server *EnvServer) handleAddMetricRequest(c *gin.Context) {
 			return
 		}
 	case core.VMType:
-		err = server.db.SetVMResources(id, metric.CPU, metric.Memory)
+		err = server.db.SetVMResources(id, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetworkIn, metric.NetworkOut)
 		if err != nil {
 			log.WithFields(log.Fields{"Error": err.Error()}).Error("Failed to set VM resources")
 			c.String(http.StatusBadRequest, err.Error())

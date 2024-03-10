@@ -12,6 +12,10 @@ type VM struct {
 	TotalMemory int64   `json:"total_memory"`
 	UsageCPU    float64 `json:"usage_cpu"`
 	UsageMemory int64   `json:"usage_memory"`
+	DiskRead    float64 `json:"disk_read"`
+	DiskWrite   float64 `json:"disk_write"`
+	NetworkIn   float64 `json:"network_in"`
+	NetworkOut  float64 `json:"network_out"`
 }
 
 func ConvertJSONToVM(jsonString string) (*VM, error) {

@@ -33,8 +33,8 @@ func (db *Database) AddVM(host *core.VM) error {
 
 	db.vmsMutex.Unlock()
 
-	sqlStatement := `INSERT INTO ` + db.dbPrefix + `VMS (VMID, STATEID, DEPLOYED, HOSTID, HOSTSTATEID, TOTAL_CPU, TOTAL_MEM, USAGE_CPU, USAGE_MEM) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
-	_, err = db.postgresql.Exec(sqlStatement, host.VMID, stateID, false, "", 0, host.TotalCPU, host.TotalMemory, host.UsageCPU, host.UsageMemory)
+	sqlStatement := `INSERT INTO ` + db.dbPrefix + `VMS (VMID, STATEID, DEPLOYED, HOSTID, HOSTSTATEID, TOTAL_CPU, TOTAL_MEM, USAGE_CPU, USAGE_MEM, DISK_READ, DISK_WRITE, NET_RX, NET_TX) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
+	_, err = db.postgresql.Exec(sqlStatement, host.VMID, stateID, false, "", 0, host.TotalCPU, host.TotalMemory, host.UsageCPU, host.UsageMemory, host.DiskRead, host.DiskWrite, host.NetworkIn, host.NetworkOut)
 	if err != nil {
 		return err
 	}
@@ -55,11 +55,15 @@ func (db *Database) parseVMs(rows *sql.Rows) ([]*core.VM, error) {
 		var totalMemory int64
 		var usageCPU float64
 		var usageMemory int64
-		if err := rows.Scan(&vmID, &stateID, &deployed, &hostID, &hostStateID, &totalCPU, &totalMemory, &usageCPU, &usageMemory); err != nil {
+		var diskRead float64
+		var diskWrite float64
+		var networkIn float64
+		var networkOut float64
+		if err := rows.Scan(&vmID, &stateID, &deployed, &hostID, &hostStateID, &totalCPU, &totalMemory, &usageCPU, &usageMemory, &diskRead, &diskWrite, &networkIn, &networkOut); err != nil {
 			return nil, err
 		}
 
-		vm := &core.VM{VMID: vmID, StateID: stateID, Deployed: deployed, HostID: hostID, HostStateID: hostStateID, TotalCPU: totalCPU, TotalMemory: totalMemory, UsageCPU: usageCPU, UsageMemory: usageMemory}
+		vm := &core.VM{VMID: vmID, StateID: stateID, Deployed: deployed, HostID: hostID, HostStateID: hostStateID, TotalCPU: totalCPU, TotalMemory: totalMemory, UsageCPU: usageCPU, UsageMemory: usageMemory, DiskRead: diskRead, DiskWrite: diskWrite, NetworkIn: networkIn, NetworkOut: networkOut}
 
 		vms = append(vms, vm)
 	}
@@ -67,9 +71,9 @@ func (db *Database) parseVMs(rows *sql.Rows) ([]*core.VM, error) {
 	return vms, nil
 }
 
-func (db *Database) SetVMResources(vmID string, usageCPU float64, usageMemory int64) error {
-	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET USAGE_CPU = $1, USAGE_MEM = $2 WHERE VMID = $3`
-	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, vmID)
+func (db *Database) SetVMResources(vmID string, usageCPU float64, usageMemory int64, diskRead float64, diskWrite float64, networkIn float64, networkOut float64) error {
+	sqlStatement := `UPDATE ` + db.dbPrefix + `VMS SET USAGE_CPU = $1, USAGE_MEM = $2, DISK_READ = $4, DISK_WRITE = $5, NET_RX = $6, NET_TX = $7 WHERE VMID = $3`
+	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, vmID, diskRead, diskWrite, networkIn, networkOut)
 	if err != nil {
 		return err
 	}

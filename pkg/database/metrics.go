@@ -17,8 +17,8 @@ func (db *Database) AddMetric(id string, metricType int, metric *core.Metric) er
 		return errors.New("ID must be specified")
 	}
 
-	sqlStatement := `INSERT INTO ` + db.dbPrefix + `METRICS (ID, TYPE, TS, CPU, MEMORY) VALUES ($1, $2, $3, $4, $5)`
-	_, err := db.postgresql.Exec(sqlStatement, id, metricType, metric.Timestamp, metric.CPU, metric.Memory)
+	sqlStatement := `INSERT INTO ` + db.dbPrefix + `METRICS (ID, TYPE, TS, CPU, MEMORY, DISK_READ, DISK_WRITE, NET_RX, NET_TX) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	_, err := db.postgresql.Exec(sqlStatement, id, metricType, metric.Timestamp, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetworkIn, metric.NetworkOut)
 	if err != nil {
 		return err
 	}
@@ -35,11 +35,15 @@ func (db *Database) parseMetrics(rows *sql.Rows) ([]*core.Metric, error) {
 		var ts time.Time
 		var cpu float64
 		var memory int64
-		if err := rows.Scan(&hostID, &metricType, &ts, &cpu, &memory); err != nil {
+		var diskRead float64
+		var diskWrite float64
+		var netRX float64
+		var netTX float64
+		if err := rows.Scan(&hostID, &metricType, &ts, &cpu, &memory, &diskRead, &diskWrite, &netRX, &netTX); err != nil {
 			return nil, err
 		}
 
-		metric := &core.Metric{Timestamp: ts, CPU: cpu, Memory: memory}
+		metric := &core.Metric{Timestamp: ts, CPU: cpu, Memory: memory, DiskRead: diskRead, DiskWrite: diskWrite, NetworkIn: netRX, NetworkOut: netTX}
 		metrics = append(metrics, metric)
 	}
 
@@ -59,7 +63,7 @@ func (db *Database) GetMetrics(hostID string, metricType int, since time.Time, c
 }
 
 func (db *Database) Export(id string, metricType int, filename string) error {
-	sqlStatement := `SELECT ID, TYPE, TS, CPU, MEMORY FROM ` + db.dbPrefix + `METRICS WHERE ID=$1 AND TYPE=$2`
+	sqlStatement := `SELECT ID, TYPE, TS, CPU, MEMORY, DISK_READ, DISK_WRITE, NET_RX, NET_TX FROM ` + db.dbPrefix + `METRICS WHERE ID=$1 AND TYPE=$2`
 	rows, err := db.postgresql.Query(sqlStatement, id, metricType)
 	if err != nil {
 		return err
@@ -77,7 +81,7 @@ func (db *Database) Export(id string, metricType int, filename string) error {
 	defer writer.Flush()
 
 	// Write CSV header
-	header := []string{"id", "type", "ts", "cpu", "mem"}
+	header := []string{"id", "type", "ts", "cpu", "mem", "disk_read", "disk_write", "net_rx", "net_tx"}
 	if err := writer.Write(header); err != nil {
 		return err
 	}
@@ -89,13 +93,17 @@ func (db *Database) Export(id string, metricType int, filename string) error {
 		var typeValue int
 		var cpu float64
 		var memory int64
+		var diskRead float64
+		var diskWrite float64
+		var netRX float64
+		var netTX float64
 
-		err := rows.Scan(&id, &typeValue, &ts, &cpu, &memory)
+		err := rows.Scan(&id, &typeValue, &ts, &cpu, &memory, &diskRead, &diskWrite, &netRX, &netTX)
 		if err != nil {
 			return err
 		}
 
-		record := []string{id, fmt.Sprintf("%d", typeValue), strconv.FormatInt(ts.UnixNano(), 10), fmt.Sprintf("%f", cpu), fmt.Sprintf("%d", memory)}
+		record := []string{id, fmt.Sprintf("%d", typeValue), strconv.FormatInt(ts.UnixNano(), 10), fmt.Sprintf("%f", cpu), fmt.Sprintf("%d", memory), fmt.Sprintf("%f", diskRead), fmt.Sprintf("%f", diskWrite), fmt.Sprintf("%f", netRX), fmt.Sprintf("%f", netTX)}
 		if err := writer.Write(record); err != nil {
 			return err
 		}

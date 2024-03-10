@@ -79,7 +79,7 @@ func TestSetVMResources(t *testing.T) {
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
-	err = db.SetVMResources(vm.VMID, float64(1), int64(2))
+	err = db.SetVMResources(vm.VMID, float64(1), int64(2), float64(3), float64(4), float64(5), float64(6))
 	assert.Nil(t, err)
 
 	hosts, err := db.GetVMs()

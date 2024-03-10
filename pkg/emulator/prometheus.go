@@ -51,6 +51,10 @@ type HostMetric struct {
 	Timestamp   time.Time `json:"timestamp"`
 	CPURate     float64   `json:"cpurate"`
 	MemoryUsage int64     `json:"memoryusage"`
+	DiskRead    float64   `json:"diskread"`
+	DiskWrite   float64   `json:"diskwrite"`
+	NetRx       float64   `json:"netrx"`
+	NetTx       float64   `json:"nettx"`
 }
 
 func queryPrometheus(prometheusURL, query string) ([]byte, error) {
@@ -81,66 +85,49 @@ func GetFlavourMetricForHost(prometheusURL, host string) (*HostMetric, error) {
 		return nil, err
 	}
 
+	timestamp, diskRead, err := getDiskReadRateForHost(prometheusURL, host)
+	if err != nil {
+		return nil, err
+	}
+
+	timestamp, diskWrite, err := getDiskWriteRateForHost(prometheusURL, host)
+	if err != nil {
+		return nil, err
+	}
+
+	timestamp, netRx, err := getNetRxRateForHost(prometheusURL, host)
+	if err != nil {
+		return nil, err
+	}
+
+	timestamp, netTx, err := getNetTxRateForHost(prometheusURL, host)
+	if err != nil {
+		return nil, err
+	}
+
 	return &HostMetric{
 		Name:        host,
 		Timestamp:   timestamp,
 		CPURate:     cpuRate,
 		MemoryUsage: memoryUsage,
+		DiskRead:    diskRead,
+		DiskWrite:   diskWrite,
+		NetRx:       netRx,
+		NetTx:       netTx,
 	}, nil
 }
 
 func getMemoryUsageForHost(prometheusURL, host string) (time.Time, int64, error) {
 	query := `container_memory_usage_bytes{name="` + host + `"}`
 
-	var timestamp time.Time
-	var memoryUsage int64
+	timestamp, memoryUsageStr, err := processPrometheusResp(prometheusURL, query, host)
+	if err != nil {
+		return timestamp, 0, err
+	}
 
-	r, err := queryPrometheus(prometheusURL, query)
+	memoryUsage, err := strconv.ParseInt(memoryUsageStr, 10, 64)
 	if err != nil {
 		return timestamp, memoryUsage, err
-	}
-
-	var resp PrometheusResponse
-	err = json.Unmarshal(r, &resp)
-	if err != nil {
-		return timestamp, memoryUsage, err
-	}
-
-	if len(resp.Data.Result) == 0 {
-		return timestamp, memoryUsage, errors.New("No metrics found for " + host + " host")
-	}
-
-	if len(resp.Data.Result) > 1 {
-		return timestamp, memoryUsage, errors.New("Only one metric result is allowed for " + host + " host")
-	}
-
-	var result = resp.Data.Result[0]
-	if result.Metric.NameLabel == host {
-		var memoryUsageStr string
-		var ok bool
-		var floatTimestamp float64
-		if len(result.Value) == 2 {
-			floatTimestamp, ok = result.Value[0].(float64)
-			if !ok {
-				return timestamp, memoryUsage, errors.New("Failed to parse timestamp metric")
-			}
-
-			memoryUsageStr, ok = result.Value[1].(string)
-			if !ok {
-				return timestamp, memoryUsage, errors.New("Failed to parse rate metric")
-			}
-		} else {
-			return timestamp, memoryUsage, errors.New("Invalid number of values for " + host + " host")
-		}
-
-		memoryUsage, err = strconv.ParseInt(memoryUsageStr, 10, 64)
-		if err != nil {
-			return timestamp, memoryUsage, err
-		}
-
-		seconds := int64(floatTimestamp)
-		nanoseconds := int64((floatTimestamp - float64(seconds)) * 1e9)
-		timestamp = time.Unix(seconds, nanoseconds)
 	}
 
 	return timestamp, memoryUsage, nil
@@ -149,58 +136,138 @@ func getMemoryUsageForHost(prometheusURL, host string) (time.Time, int64, error)
 func getCPURateForHost(prometheusURL, host string) (time.Time, float64, error) {
 	query := `rate(container_cpu_user_seconds_total{name="` + host + `"}[30s])`
 
+	timestamp, cpuRateStr, err := processPrometheusResp(prometheusURL, query, host)
+	if err != nil {
+		return timestamp, 0, err
+	}
+
+	cpuRate, err := strconv.ParseFloat(cpuRateStr, 64)
+	if err != nil {
+		return timestamp, cpuRate, err
+	}
+
+	return timestamp, cpuRate, nil
+}
+
+func getDiskReadRateForHost(prometheusURL, host string) (time.Time, float64, error) {
+	query := `rate(container_fs_reads_bytes_total{name="` + host + `"}[30s])`
+
+	timestamp, diskReadStr, err := processPrometheusResp(prometheusURL, query, host)
+	if err != nil {
+		return timestamp, 0, err
+	}
+
+	diskRead, err := strconv.ParseFloat(diskReadStr, 64)
+	if err != nil {
+		return timestamp, diskRead, err
+	}
+
+	diskReadKb := diskRead / 1024
+
+	return timestamp, diskReadKb, nil
+}
+
+func getDiskWriteRateForHost(prometheusURL, host string) (time.Time, float64, error) {
+	query := `rate(container_fs_writes_bytes_total{name="` + host + `"}[30s])`
+
+	timestamp, diskWriteStr, err := processPrometheusResp(prometheusURL, query, host)
+	if err != nil {
+		return timestamp, 0, err
+	}
+
+	diskWrite, err := strconv.ParseFloat(diskWriteStr, 64)
+	if err != nil {
+		return timestamp, diskWrite, err
+	}
+
+	diskWriteKb := diskWrite / 1024
+
+	return timestamp, diskWriteKb, nil
+}
+
+func getNetRxRateForHost(prometheusURL, host string) (time.Time, float64, error) {
+	query := `rate(container_network_receive_bytes_total{name="` + host + `"}[30s])`
+
+	timestamp, netRxStr, err := processPrometheusResp(prometheusURL, query, host)
+	if err != nil {
+		return timestamp, 0, err
+	}
+
+	netRx, err := strconv.ParseFloat(netRxStr, 64)
+	if err != nil {
+		return timestamp, netRx, err
+	}
+
+	netRxKb := netRx / 1024
+
+	return timestamp, netRxKb, nil
+}
+
+func getNetTxRateForHost(prometheusURL, host string) (time.Time, float64, error) {
+	query := `rate(container_network_transmit_bytes_total{name="` + host + `"}[30s])`
+
+	timestamp, netTxStr, err := processPrometheusResp(prometheusURL, query, host)
+	if err != nil {
+		return timestamp, 0, err
+	}
+
+	netTx, err := strconv.ParseFloat(netTxStr, 64)
+	if err != nil {
+		return timestamp, netTx, err
+	}
+
+	netTxKb := netTx / 1024
+
+	return timestamp, netTxKb, nil
+}
+
+func processPrometheusResp(prometheusURL string, query string, host string) (time.Time, string, error) {
 	var timestamp time.Time
-	var cpuRate float64
+	var usageStr string
 
 	r, err := queryPrometheus(prometheusURL, query)
 	if err != nil {
-		return timestamp, cpuRate, err
+		return timestamp, usageStr, err
 	}
 
 	var resp PrometheusResponse
 	err = json.Unmarshal(r, &resp)
 	if err != nil {
-		return timestamp, cpuRate, err
+		return timestamp, usageStr, err
 	}
 
 	if len(resp.Data.Result) == 0 {
-		return timestamp, cpuRate, errors.New("No metrics found for " + host + " host")
+		return timestamp, usageStr, errors.New("No metrics found for " + host + " host")
 	}
 
 	if len(resp.Data.Result) > 1 {
-		return timestamp, cpuRate, errors.New("Only one metric result is allowed for " + host + " host")
+		return timestamp, usageStr, errors.New("Only one metric result is allowed for " + host + " host")
 	}
 
 	var result = resp.Data.Result[0]
 	if result.Metric.NameLabel == host {
-		var cpuRateStr string
+
 		var ok bool
 		var floatTimestamp float64
 		if len(result.Value) == 2 {
 			floatTimestamp, ok = result.Value[0].(float64)
 			if !ok {
-				return timestamp, cpuRate, errors.New("Failed to parse timestamp metric")
+				return timestamp, usageStr, errors.New("Failed to parse timestamp metric")
 			}
 
-			cpuRateStr, ok = result.Value[1].(string)
+			usageStr, ok = result.Value[1].(string)
 			if !ok {
-				return timestamp, cpuRate, errors.New("Failed to parse rate metric")
+				return timestamp, usageStr, errors.New("Failed to parse rate metric")
 			}
 		} else {
-			return timestamp, cpuRate, errors.New("Invalid number of values for " + host + " host")
-		}
-
-		cpuRate, err = strconv.ParseFloat(cpuRateStr, 64)
-		if err != nil {
-			return timestamp, cpuRate, err
+			return timestamp, usageStr, errors.New("Invalid number of values for " + host + " host")
 		}
 
 		seconds := int64(floatTimestamp)
 		nanoseconds := int64((floatTimestamp - float64(seconds)) * 1e9)
 		timestamp = time.Unix(seconds, nanoseconds)
 	}
-
-	return timestamp, cpuRate, nil
+	return timestamp, usageStr, nil
 }
 
 func GetTotalCPU(prometheusURL, host string) (float64, error) {
