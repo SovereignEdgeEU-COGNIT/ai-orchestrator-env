@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 )
 
 type PrometheusResponse struct {
@@ -24,6 +26,7 @@ type Result struct {
 }
 
 type Metric struct {
+	Device    string `json:"device"`
 	Name      string `json:"__name__"`
 	Instance  string `json:"instance"`
 	Job       string `json:"job"`
@@ -92,23 +95,10 @@ func GetVMIDs(prometheusURL string) ([]string, error) {
 	return vmsIDs, nil
 }
 
-func GetHost(prometheusURL, hostID string) ([]string, error) {
+func GetHostTotalMem(prometheusURL, hostID string) ([]string, error) {
 	var vmsIDs []string
 
-	//query := `label_replace(opennebula_host_mem_total_bytes, "one_host_id", "$1", "instance", "unique_regex_pattern_here")`
-	//	query := `{__name__=~"opennebula_host_mem_total_bytes|opennebula_host_mem_usage_bytes", one_host_id=~".+"}`
-	//query := `{__name__=~"opennebula_host_mem_total_bytes|opennebula_host_mem_usage_bytes|opennebula_host_cpu_total_ratio", one_host_id=~".+"}`
-	//query := `{__name__=~"opennebula_host_mem_total_bytes|opennebula_host_mem_usage_bytes|opennebula_host_cpu_total_ratio|opennebula_host_cpu_total_ratio", one_host_id=~".+"}`
-	//	query := `{__name__=~"opennebula_host_mem_total_bytes|opennebula_host_mem_usage_bytes|opennebula_host_cpu_total_ratio|opennebula_host_cpu_usage_ratio", one_host_id=~".+"}`
-
-	//query := `(((count(count(node_cpu_seconds_total{one_host_id="4"}) by (cpu))) - avg(sum by (mode)(rate(node_cpu_seconds_total{mode='idle',one_host_id="4"}[60s])))) * 100) / count(count(node_cpu_seconds_total{one_host_id="4"}) by (cpu))`
-	//query := `node_cpu_seconds_total{one_host_id="4"}`
-	//	query := `sum by (cpu, instance) (node_cpu_seconds_total{one_host_id="4"})`
-
-	//query := `avg by (mode) (node_cpu_seconds_total{one_host_id="4"})` // Working Cumulative
-
-	query := `avg by (mode) (rate(node_cpu_seconds_total{one_host_id="4"}[40s]))` // Rate
-
+	query := `opennebula_host_vms{one_host_id=` + hostID + `}`
 	r, err := queryPrometheus(prometheusURL, query)
 	if err != nil {
 		return vmsIDs, err
@@ -120,34 +110,182 @@ func GetHost(prometheusURL, hostID string) ([]string, error) {
 		return vmsIDs, err
 	}
 
-	fmt.Println(string(r))
-	// for _, result := range resp.Data.Result {
-	// 	vmsIDs = append(vmsIDs, result.Metric.OneVMID)
-	// }
-
 	return vmsIDs, nil
 }
 
-// func GetHostTotalMem(prometheusURL, hostID string) ([]string, error) {
-// 	var vmsIDs []string
-//
-// 	opennebula_host_mem_total_bytes{one_host_id="4"}
-// 	query := `opennebula_host_vms{one_host_id="4"}`
-// 	r, err := queryPrometheus(prometheusURL, query)
-// 	if err != nil {
-// 		return vmsIDs, err
-// 	}
-//
-// 	var resp PrometheusResponse
-// 	err = json.Unmarshal(r, &resp)
-// 	if err != nil {
-// 		return vmsIDs, err
-// 	}
-//
-// 	fmt.Println(string(r))
-// 	// for _, result := range resp.Data.Result {
-// 	// 	vmsIDs = append(vmsIDs, result.Metric.OneVMID)
-// 	// }
-//
-// 	return vmsIDs, nil
-// }
+func GetHostCPU(prometheusURL, hostID string) (float64, error) {
+	query := `sum by (one_host_id)(rate(node_cpu_seconds_total{mode='user',one_host_id="` + hostID + `"}[40s])) * 100`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	if len(resp.Data.Result) == 0 {
+		return 0.0, fmt.Errorf("No data found, hostID: %s", hostID)
+	}
+
+	if len(resp.Data.Result[0].Value) < 2 {
+		return 0.0, fmt.Errorf("No value found, hostID: %s", hostID)
+	}
+
+	str, ok := resp.Data.Result[0].Value[1].(string)
+	if !ok {
+		return 0.0, fmt.Errorf("Failed to convert value to string")
+	}
+	return strconv.ParseFloat(str, 64)
+}
+
+func GetHostCPUBusy(prometheusURL, hostID string) (float64, error) {
+	query := `(((count(count(node_cpu_seconds_total{one_host_id="` + hostID + `"}) by (cpu))) - avg(sum by (mode)(rate(node_cpu_seconds_total{mode='idle',one_host_id="` + hostID + `"}[300s])))) * 100) / count(count(node_cpu_seconds_total{one_host_id="` + hostID + `"}) by (cpu))`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	if len(resp.Data.Result) == 0 {
+		return 0.0, fmt.Errorf("No data found, hostID: %s", hostID)
+	}
+
+	if len(resp.Data.Result[0].Value) < 2 {
+		return 0.0, fmt.Errorf("No value found, hostID: %s", hostID)
+	}
+
+	str, ok := resp.Data.Result[0].Value[1].(string)
+	if !ok {
+		return 0.0, fmt.Errorf("Failed to convert value to string")
+	}
+
+	return strconv.ParseFloat(str, 64)
+}
+
+func GetHostUsedMem(prometheusURL, hostID string) (int64, error) {
+	query := `node_memory_MemFree_bytes{one_host_id="` + hostID + `"}`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	str, ok := resp.Data.Result[0].Value[1].(string)
+	if !ok {
+		return 0.0, fmt.Errorf("Failed to convert value to string")
+	}
+
+	memBytes, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return 0.0, err
+	}
+	memMBInt64 := int64(memBytes / 1024 / 1024)
+
+	return memMBInt64, nil
+}
+
+func GetHostAvailMem(prometheusURL, hostID string) (int64, error) {
+	query := `node_memory_MemTotal_bytes{one_host_id="` + hostID + `"}`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	str, ok := resp.Data.Result[0].Value[1].(string)
+	if !ok {
+		return 0.0, fmt.Errorf("Failed to convert value to string")
+	}
+
+	memBytes, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return 0.0, err
+	}
+	memMBInt64 := int64(memBytes / 1024 / 1024)
+
+	return memMBInt64, nil
+}
+
+func GetHostNetTrans(prometheusURL, hostID string) (int64, error) {
+	query := `rate(node_network_transmit_bytes_total{one_host_id="` + hostID + `"}[40s])*8`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var sumIfs float64
+	for _, result := range resp.Data.Result {
+		if strings.HasPrefix(result.Metric.Device, "br") {
+			continue
+		}
+
+		sumIfsStr := result.Value[1].(string)
+		ifs, err := strconv.ParseFloat(sumIfsStr, 64)
+		if err != nil {
+			return 0.0, err
+		}
+		sumIfs += ifs
+	}
+
+	return int64(sumIfs), nil
+}
+
+func GetHostNetRecv(prometheusURL, hostID string) (int64, error) {
+	query := `rate(node_network_receive_bytes_total{one_host_id="` + hostID + `"}[40s])*8`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var sumIfs float64
+	for _, result := range resp.Data.Result {
+		if strings.HasPrefix(result.Metric.Device, "br") {
+			continue
+		}
+
+		sumIfsStr := result.Value[1].(string)
+		ifs, err := strconv.ParseFloat(sumIfsStr, 64)
+		if err != nil {
+			return 0.0, err
+		}
+		sumIfs += ifs
+	}
+
+	return int64(sumIfs), nil
+}
