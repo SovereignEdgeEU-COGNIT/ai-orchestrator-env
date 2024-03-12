@@ -172,7 +172,7 @@ func GetHostCPUBusy(prometheusURL, hostID string) (float64, error) {
 	return strconv.ParseFloat(str, 64)
 }
 
-func GetHostUsedMem(prometheusURL, hostID string) (int64, error) {
+func GetHostUsedMem(prometheusURL, hostID string) (float64, error) {
 	query := `node_memory_MemFree_bytes{one_host_id="` + hostID + `"}`
 
 	r, err := queryPrometheus(prometheusURL, query)
@@ -186,6 +186,14 @@ func GetHostUsedMem(prometheusURL, hostID string) (int64, error) {
 		return 0.0, err
 	}
 
+	if len(resp.Data.Result) == 0 {
+		return 0.0, fmt.Errorf("No data found, hostID: %s", hostID)
+	}
+
+	if len(resp.Data.Result[0].Value) < 2 {
+		return 0.0, fmt.Errorf("No value found, hostID: %s", hostID)
+	}
+
 	str, ok := resp.Data.Result[0].Value[1].(string)
 	if !ok {
 		return 0.0, fmt.Errorf("Failed to convert value to string")
@@ -195,7 +203,7 @@ func GetHostUsedMem(prometheusURL, hostID string) (int64, error) {
 	if err != nil {
 		return 0.0, err
 	}
-	memMBInt64 := int64(memBytes / 1024 / 1024)
+	memMBInt64 := (memBytes / 1024 / 1024)
 
 	return memMBInt64, nil
 }
@@ -214,6 +222,14 @@ func GetHostAvailMem(prometheusURL, hostID string) (int64, error) {
 		return 0.0, err
 	}
 
+	if len(resp.Data.Result) == 0 {
+		return 0.0, fmt.Errorf("No data found, hostID: %s", hostID)
+	}
+
+	if len(resp.Data.Result[0].Value) < 2 {
+		return 0.0, fmt.Errorf("No value found, hostID: %s", hostID)
+	}
+
 	str, ok := resp.Data.Result[0].Value[1].(string)
 	if !ok {
 		return 0.0, fmt.Errorf("Failed to convert value to string")
@@ -228,7 +244,7 @@ func GetHostAvailMem(prometheusURL, hostID string) (int64, error) {
 	return memMBInt64, nil
 }
 
-func GetHostNetTrans(prometheusURL, hostID string) (int64, error) {
+func GetHostNetTX(prometheusURL, hostID string) (float64, error) {
 	query := `rate(node_network_transmit_bytes_total{one_host_id="` + hostID + `"}[40s])*8`
 
 	r, err := queryPrometheus(prometheusURL, query)
@@ -256,10 +272,10 @@ func GetHostNetTrans(prometheusURL, hostID string) (int64, error) {
 		sumIfs += ifs
 	}
 
-	return int64(sumIfs), nil
+	return sumIfs, nil
 }
 
-func GetHostNetRecv(prometheusURL, hostID string) (int64, error) {
+func GetHostNetRX(prometheusURL, hostID string) (float64, error) {
 	query := `rate(node_network_receive_bytes_total{one_host_id="` + hostID + `"}[40s])*8`
 
 	r, err := queryPrometheus(prometheusURL, query)
@@ -287,5 +303,69 @@ func GetHostNetRecv(prometheusURL, hostID string) (int64, error) {
 		sumIfs += ifs
 	}
 
-	return int64(sumIfs), nil
+	return sumIfs, nil
+}
+
+func GetHostDiskRead(prometheusURL, hostID string) (float64, error) {
+	query := `sum(rate(node_disk_read_bytes_total{one_host_id="` + hostID + `"}[40s]))`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	if len(resp.Data.Result) == 0 {
+		return 0.0, fmt.Errorf("No data found, hostID: %s", hostID)
+	}
+
+	if len(resp.Data.Result[0].Value) < 2 {
+		return 0.0, fmt.Errorf("No value found, hostID: %s", hostID)
+	}
+
+	str, ok := resp.Data.Result[0].Value[1].(string)
+	if !ok {
+		return 0.0, fmt.Errorf("Failed to convert value to string")
+	}
+
+	diskRead, err := strconv.ParseFloat(str, 64)
+
+	return diskRead, nil
+}
+
+func GetHostDiskWrite(prometheusURL, hostID string) (float64, error) {
+	query := `sum(rate(node_disk_written_bytes_total{one_host_id="` + hostID + `"}[40s]))`
+
+	r, err := queryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	if len(resp.Data.Result) == 0 {
+		return 0.0, fmt.Errorf("No data found, hostID: %s", hostID)
+	}
+
+	if len(resp.Data.Result[0].Value) < 2 {
+		return 0.0, fmt.Errorf("No value found, hostID: %s", hostID)
+	}
+
+	str, ok := resp.Data.Result[0].Value[1].(string)
+	if !ok {
+		return 0.0, fmt.Errorf("Failed to convert value to string")
+	}
+
+	diskRead, err := strconv.ParseFloat(str, 64)
+
+	return diskRead, nil
 }

@@ -18,7 +18,11 @@ func printHostsTable(hosts []*core.Host) {
 		{ID: "TotalMem", Name: "Total Mem", SortIndex: 4},
 		{ID: "UsageCPU", Name: "Usage CPU", SortIndex: 5},
 		{ID: "UsageMem", Name: "Usage Mem", SortIndex: 6},
-		{ID: "VMS", Name: "VMs", SortIndex: 7},
+		{ID: "DiskRead", Name: "DiskRead", SortIndex: 7},
+		{ID: "DiskWrite", Name: "DiskWrite", SortIndex: 8},
+		{ID: "NetTX", Name: "NetTX", SortIndex: 9},
+		{ID: "NetRX", Name: "NetRX", SortIndex: 10},
+		{ID: "VMS", Name: "VMs", SortIndex: 11},
 	}
 	t.SetCols(cols)
 
@@ -26,10 +30,15 @@ func printHostsTable(hosts []*core.Host) {
 		row := []interface{}{
 			termenv.String(host.HostID).Foreground(theme.ColorCyan),
 			termenv.String(strconv.Itoa(host.StateID)).Foreground(theme.ColorViolet),
-			termenv.String(strconv.FormatFloat(host.TotalCPU, 'f', -1, 64)).Foreground(theme.ColorMagenta),
-			termenv.String(strconv.FormatInt(host.TotalMemory, 10)).Foreground(theme.ColorMagenta),
-			termenv.String(strconv.FormatFloat(host.UsageCPU, 'f', -1, 64)).Foreground(theme.ColorGreen),
-			termenv.String(strconv.FormatInt(host.UsageMemory, 10)).Foreground(theme.ColorGreen),
+			termenv.String(strconv.FormatFloat(host.TotalCPU, 'f', 2, 64)).Foreground(theme.ColorMagenta),
+			termenv.String(strconv.FormatFloat(host.TotalMemory, 'f', 2, 64)).Foreground(theme.ColorMagenta),
+			termenv.String(strconv.FormatFloat(host.UsageCPU, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(host.UsageMemory, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(host.DiskRead, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(host.DiskRead, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(host.DiskWrite, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(host.NetRX, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(host.NetTX, 'f', 2, 64)).Foreground(theme.ColorYellow),
 			termenv.String(strconv.Itoa(host.VMs)).Foreground(theme.ColorBlue),
 		}
 		t.AddRow(row)

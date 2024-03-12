@@ -79,14 +79,14 @@ func TestSetVMResources(t *testing.T) {
 	err = db.AddVM(vm)
 	assert.Nil(t, err)
 
-	err = db.SetVMResources(vm.VMID, float64(1), int64(2), float64(3), float64(4), float64(5), float64(6))
+	err = db.SetVMResources(vm.VMID, float64(1), float64(2), float64(3), float64(4), float64(5), float64(6))
 	assert.Nil(t, err)
 
 	hosts, err := db.GetVMs()
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(hosts))
 	assert.Equal(t, float64(1), hosts[0].UsageCPU)
-	assert.Equal(t, int64(2), hosts[0].UsageMemory)
+	assert.Equal(t, float64(2), hosts[0].UsageMemory)
 }
 
 func TestRemoveVM(t *testing.T) {

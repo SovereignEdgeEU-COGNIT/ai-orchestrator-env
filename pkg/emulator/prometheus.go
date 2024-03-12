@@ -50,7 +50,7 @@ type HostMetric struct {
 	Name        string    `json:"name"`
 	Timestamp   time.Time `json:"timestamp"`
 	CPURate     float64   `json:"cpurate"`
-	MemoryUsage int64     `json:"memoryusage"`
+	MemoryUsage float64   `json:"memoryusage"`
 	DiskRead    float64   `json:"diskread"`
 	DiskWrite   float64   `json:"diskwrite"`
 	NetRx       float64   `json:"netrx"`
@@ -117,7 +117,7 @@ func GetFlavourMetricForHost(prometheusURL, host string) (*HostMetric, error) {
 	}, nil
 }
 
-func getMemoryUsageForHost(prometheusURL, host string) (time.Time, int64, error) {
+func getMemoryUsageForHost(prometheusURL, host string) (time.Time, float64, error) {
 	query := `container_memory_usage_bytes{name="` + host + `"}`
 
 	timestamp, memoryUsageStr, err := processPrometheusResp(prometheusURL, query, host)
@@ -125,7 +125,7 @@ func getMemoryUsageForHost(prometheusURL, host string) (time.Time, int64, error)
 		return timestamp, 0, err
 	}
 
-	memoryUsage, err := strconv.ParseInt(memoryUsageStr, 10, 64)
+	memoryUsage, err := strconv.ParseFloat(memoryUsageStr, 64)
 	if err != nil {
 		return timestamp, memoryUsage, err
 	}
@@ -277,7 +277,7 @@ func GetTotalCPU(prometheusURL, host string) (float64, error) {
 	return 5.0, nil
 }
 
-func GetTotalMemory(prometheusURL, host string) (int64, error) {
+func GetTotalMemory(prometheusURL, host string) (float64, error) {
 	// TODO query machine_memory_bytes
-	return int64(15348236288), nil
+	return float64(15348236288.0), nil
 }

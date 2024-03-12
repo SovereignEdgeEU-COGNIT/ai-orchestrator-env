@@ -62,20 +62,38 @@ func TestGetHostAvailMem(t *testing.T) {
 	assert.True(t, availMem > 0, "availMem should be greater than 0")
 }
 
-func TestGetHostNetTransmit(t *testing.T) {
-	netTrans, err := GetHostNetTrans(prometheusURL, "4")
+func TestGetHostNetTX(t *testing.T) {
+	netTX, err := GetHostNetTX(prometheusURL, "4")
 	assert.Nil(t, err)
 	if err != nil {
 		t.Error(err)
 	}
-	assert.True(t, netTrans > 0, "netTrans should be greater than 0")
+	assert.True(t, netTX > 0, "netTrans should be greater than 0")
 }
 
-func TestGetHostNetRecv(t *testing.T) {
-	netRecv, err := GetHostNetRecv(prometheusURL, "4")
+func TestGetHostNetRX(t *testing.T) {
+	netRX, err := GetHostNetRX(prometheusURL, "4")
 	assert.Nil(t, err)
 	if err != nil {
 		t.Error(err)
 	}
-	assert.True(t, netRecv > 0, "netTrans should be greater than 0")
+	assert.True(t, netRX > 0, "netRX should be greater than 0")
+}
+
+func TestGetHostDiskRead(t *testing.T) {
+	diskRead, err := GetHostDiskRead(prometheusURL, "4")
+	assert.Nil(t, err)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.True(t, diskRead >= 0, "diskRead should be greater than 0")
+}
+
+func TestGetHostDiskWrite(t *testing.T) {
+	diskWrite, err := GetHostDiskWrite(prometheusURL, "4")
+	assert.Nil(t, err)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.True(t, diskWrite >= 0, "diskWrite should be greater than 0")
 }

@@ -6,9 +6,13 @@ type Host struct {
 	HostID      string  `json:"hostid"`
 	StateID     int     `json:"stateid"`
 	TotalCPU    float64 `json:"total_cpu"`
-	TotalMemory int64   `json:"total_memory"`
+	TotalMemory float64 `json:"total_memory"`
 	UsageCPU    float64 `json:"usage_cpu"`
-	UsageMemory int64   `json:"usage_memory"`
+	UsageMemory float64 `json:"usage_memory"`
+	DiskRead    float64 `json:"disk_read"`
+	DiskWrite   float64 `json:"disk_write"`
+	NetRX       float64 `json:"netrx"`
+	NetTX       float64 `json:"nettx"`
 	VMs         int     `json:"vms"`
 }
 
@@ -61,7 +65,12 @@ func (host *Host) Equals(host2 *Host) bool {
 		host.TotalCPU == host2.TotalCPU &&
 		host.TotalMemory == host2.TotalMemory &&
 		host.UsageCPU == host2.UsageCPU &&
-		host.UsageMemory == host2.UsageMemory {
+		host.UsageMemory == host2.UsageMemory &&
+		host.DiskRead == host2.DiskRead &&
+		host.DiskWrite == host2.DiskWrite &&
+		host.NetRX == host2.NetRX &&
+		host.NetTX == host2.NetTX &&
+		host.VMs == host2.VMs {
 		return true
 	}
 

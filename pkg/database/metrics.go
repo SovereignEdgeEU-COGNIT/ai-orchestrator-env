@@ -18,7 +18,7 @@ func (db *Database) AddMetric(id string, metricType int, metric *core.Metric) er
 	}
 
 	sqlStatement := `INSERT INTO ` + db.dbPrefix + `METRICS (ID, TYPE, TS, CPU, MEMORY, DISK_READ, DISK_WRITE, NET_RX, NET_TX) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
-	_, err := db.postgresql.Exec(sqlStatement, id, metricType, metric.Timestamp, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetworkIn, metric.NetworkOut)
+	_, err := db.postgresql.Exec(sqlStatement, id, metricType, metric.Timestamp, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetRX, metric.NetTX)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (db *Database) parseMetrics(rows *sql.Rows) ([]*core.Metric, error) {
 		var metricType int
 		var ts time.Time
 		var cpu float64
-		var memory int64
+		var memory float64
 		var diskRead float64
 		var diskWrite float64
 		var netRX float64
@@ -43,7 +43,7 @@ func (db *Database) parseMetrics(rows *sql.Rows) ([]*core.Metric, error) {
 			return nil, err
 		}
 
-		metric := &core.Metric{Timestamp: ts, CPU: cpu, Memory: memory, DiskRead: diskRead, DiskWrite: diskWrite, NetworkIn: netRX, NetworkOut: netTX}
+		metric := &core.Metric{Timestamp: ts, CPU: cpu, Memory: memory, DiskRead: diskRead, DiskWrite: diskWrite, NetRX: netRX, NetTX: netTX}
 		metrics = append(metrics, metric)
 	}
 

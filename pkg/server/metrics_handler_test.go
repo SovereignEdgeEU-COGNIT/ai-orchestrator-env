@@ -18,7 +18,7 @@ func TestAddHostMetrics(t *testing.T) {
 	host, err = client.GetHost("host1")
 	assert.Nil(t, err)
 	assert.Equal(t, host.UsageCPU, float64(0))
-	assert.Equal(t, host.UsageMemory, int64(0))
+	assert.Equal(t, host.UsageMemory, float64(0))
 
 	now := time.Now()
 	err = client.AddMetric("host1", core.HostType, &core.Metric{Timestamp: now, CPU: 1, Memory: 10})
@@ -29,12 +29,12 @@ func TestAddHostMetrics(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, metrics, 1)
 	assert.Equal(t, metrics[0].CPU, float64(1))
-	assert.Equal(t, metrics[0].Memory, int64(10))
+	assert.Equal(t, metrics[0].Memory, float64(10))
 
 	host, err = client.GetHost("host1")
 	assert.Nil(t, err)
 	assert.Equal(t, host.UsageCPU, float64(1))
-	assert.Equal(t, host.UsageMemory, int64(10))
+	assert.Equal(t, host.UsageMemory, float64(10))
 
 	server.Shutdown()
 	<-done
@@ -50,7 +50,7 @@ func TestAddVMMetrics(t *testing.T) {
 	vm, err = client.GetVM("vm1")
 	assert.Nil(t, err)
 	assert.Equal(t, vm.UsageCPU, float64(0))
-	assert.Equal(t, vm.UsageMemory, int64(0))
+	assert.Equal(t, vm.UsageMemory, float64(0))
 
 	now := time.Now()
 	err = client.AddMetric("vm1", core.VMType, &core.Metric{Timestamp: now, CPU: 1, Memory: 10})
@@ -61,12 +61,12 @@ func TestAddVMMetrics(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, metrics, 1)
 	assert.Equal(t, metrics[0].CPU, float64(1))
-	assert.Equal(t, metrics[0].Memory, int64(10))
+	assert.Equal(t, metrics[0].Memory, float64(10))
 
 	vm, err = client.GetVM("vm1")
 	assert.Nil(t, err)
 	assert.Equal(t, vm.UsageCPU, float64(1))
-	assert.Equal(t, vm.UsageMemory, int64(10))
+	assert.Equal(t, vm.UsageMemory, float64(10))
 
 	server.Shutdown()
 	<-done

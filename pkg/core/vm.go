@@ -9,13 +9,13 @@ type VM struct {
 	HostID      string  `json:"hostid"`
 	HostStateID int     `json:"hoststateid"`
 	TotalCPU    float64 `json:"total_cpu"`
-	TotalMemory int64   `json:"total_memory"`
+	TotalMemory float64 `json:"total_memory"`
 	UsageCPU    float64 `json:"usage_cpu"`
-	UsageMemory int64   `json:"usage_memory"`
+	UsageMemory float64 `json:"usage_memory"`
 	DiskRead    float64 `json:"disk_read"`
 	DiskWrite   float64 `json:"disk_write"`
-	NetworkIn   float64 `json:"network_in"`
-	NetworkOut  float64 `json:"network_out"`
+	NetRX       float64 `json:"netrx"`
+	NetTX       float64 `json:"nettx"`
 }
 
 func ConvertJSONToVM(jsonString string) (*VM, error) {
@@ -70,7 +70,11 @@ func (vm *VM) Equals(vm2 *VM) bool {
 		vm.TotalCPU == vm2.TotalCPU &&
 		vm.TotalMemory == vm2.TotalMemory &&
 		vm.UsageCPU == vm2.UsageCPU &&
-		vm.UsageMemory == vm2.UsageMemory {
+		vm.UsageMemory == vm2.UsageMemory &&
+		vm.DiskRead == vm2.DiskRead &&
+		vm.DiskWrite == vm2.DiskWrite &&
+		vm.NetRX == vm2.NetRX &&
+		vm.NetTX == vm2.NetTX {
 		return true
 	}
 

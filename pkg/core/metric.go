@@ -6,13 +6,13 @@ import (
 )
 
 type Metric struct {
-	Timestamp  time.Time `json:"timestamp"`
-	CPU        float64   `json:"cpu"`
-	Memory     int64     `json:"memory"`
-	DiskRead   float64   `json:"disk_read"`
-	DiskWrite  float64   `json:"disk_write"`
-	NetworkIn  float64   `json:"network_in"`
-	NetworkOut float64   `json:"network_out"`
+	Timestamp time.Time `json:"timestamp"`
+	CPU       float64   `json:"cpu"`
+	Memory    float64   `json:"memory"`
+	DiskRead  float64   `json:"disk_read"`
+	DiskWrite float64   `json:"disk_write"`
+	NetRX     float64   `json:"netrx"`
+	NetTX     float64   `json:"nettx"`
 }
 
 func ConvertJSONToMetric(jsonString string) (*Metric, error) {
@@ -61,6 +61,10 @@ func (metric *Metric) Equals(metric2 *Metric) bool {
 
 	if metric.Memory == metric2.Memory &&
 		metric.CPU == metric2.CPU &&
+		metric.DiskRead == metric2.DiskRead &&
+		metric.DiskWrite == metric2.DiskWrite &&
+		metric.NetRX == metric2.NetRX &&
+		metric.NetTX == metric2.NetTX &&
 		metric.Timestamp.UnixNano() == metric2.Timestamp.UnixNano() {
 		return true
 	}

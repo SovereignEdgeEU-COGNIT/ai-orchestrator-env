@@ -271,7 +271,7 @@ func (c *EmulatorConnector) fetchMetrics() error {
 		hostMetric, err := GetFlavourMetricForHost(prometheusURL, host.HostID)
 
 		if err == nil {
-			err = c.envClient.AddMetric(host.HostID, core.HostType, &core.Metric{Timestamp: hostMetric.Timestamp, CPU: hostMetric.CPURate, Memory: hostMetric.MemoryUsage, DiskRead: hostMetric.DiskRead, DiskWrite: hostMetric.DiskWrite, NetworkIn: hostMetric.NetRx, NetworkOut: hostMetric.NetTx})
+			err = c.envClient.AddMetric(host.HostID, core.HostType, &core.Metric{Timestamp: hostMetric.Timestamp, CPU: hostMetric.CPURate, Memory: hostMetric.MemoryUsage, DiskRead: hostMetric.DiskRead, DiskWrite: hostMetric.DiskWrite, NetRX: hostMetric.NetRx, NetTX: hostMetric.NetTx})
 
 			if err != nil {
 				log.WithFields(log.Fields{"error": err}).Error("Error adding metric to env server")

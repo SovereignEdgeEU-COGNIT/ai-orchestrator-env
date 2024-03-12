@@ -62,7 +62,7 @@ var addVMCmd = &cobra.Command{
 		totalCPU, err := strconv.ParseFloat(TotalCPU, 64)
 		CheckError(err)
 
-		totalMem, err := strconv.ParseInt(TotalMemory, 10, 64)
+		totalMem, err := strconv.ParseFloat(TotalMemory, 64)
 		CheckError(err)
 
 		err = client.AddVM(&core.VM{VMID: VMID, TotalCPU: totalCPU, TotalMemory: totalMem})
@@ -137,7 +137,7 @@ var reportVMMetricCmd = &cobra.Command{
 		usageCPU, err := strconv.ParseFloat(UsageCPU, 64)
 		CheckError(err)
 
-		usageMem, err := strconv.ParseInt(UsageMemory, 10, 64)
+		usageMem, err := strconv.ParseFloat(UsageMemory, 64)
 		CheckError(err)
 
 		metric := &core.Metric{Timestamp: time.Now(), Memory: usageMem, CPU: usageCPU}

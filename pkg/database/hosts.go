@@ -33,8 +33,8 @@ func (db *Database) AddHost(host *core.Host) error {
 
 	db.hostsMutex.Unlock()
 
-	sqlStatement := `INSERT INTO ` + db.dbPrefix + `HOSTS (HOSTID, STATEID, TOTAL_CPU, TOTAL_MEM, USAGE_CPU, USAGE_MEM) VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err = db.postgresql.Exec(sqlStatement, host.HostID, stateID, host.TotalCPU, host.TotalMemory, host.UsageCPU, host.UsageMemory)
+	sqlStatement := `INSERT INTO ` + db.dbPrefix + `HOSTS (HOSTID, STATEID, TOTAL_CPU, TOTAL_MEM, USAGE_CPU, USAGE_MEM, DISK_READ, DISK_WRITE, NET_RX, NET_TX) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+	_, err = db.postgresql.Exec(sqlStatement, host.HostID, stateID, host.TotalCPU, host.TotalMemory, host.UsageCPU, host.UsageMemory, host.DiskRead, host.DiskWrite, host.NetRX, host.NetTX)
 	if err != nil {
 		return err
 	}
@@ -49,11 +49,15 @@ func (db *Database) parseHosts(rows *sql.Rows) ([]*core.Host, error) {
 		var hostID string
 		var stateID int
 		var totalCPU float64
-		var totalMem int64
+		var totalMem float64
 		var usageCPU float64
-		var usageMem int64
+		var usageMem float64
+		var diskRead float64
+		var diskWrite float64
+		var netRX float64
+		var netTX float64
 
-		if err := rows.Scan(&hostID, &stateID, &totalCPU, &totalMem, &usageCPU, &usageMem); err != nil {
+		if err := rows.Scan(&hostID, &stateID, &totalCPU, &totalMem, &usageCPU, &usageMem, &diskRead, &diskWrite, &netRX, &netTX); err != nil {
 			return nil, err
 		}
 
@@ -64,6 +68,10 @@ func (db *Database) parseHosts(rows *sql.Rows) ([]*core.Host, error) {
 			TotalMemory: totalMem,
 			UsageCPU:    usageCPU,
 			UsageMemory: usageMem,
+			DiskRead:    diskRead,
+			DiskWrite:   diskWrite,
+			NetRX:       netRX,
+			NetTX:       netTX,
 		}
 		hosts = append(hosts, host)
 	}
@@ -71,9 +79,9 @@ func (db *Database) parseHosts(rows *sql.Rows) ([]*core.Host, error) {
 	return hosts, nil
 }
 
-func (db *Database) SetHostResources(hostID string, usageCPU float64, usageMemory int64) error {
-	sqlStatement := `UPDATE ` + db.dbPrefix + `HOSTS SET USAGE_CPU = $1, USAGE_MEM = $2 WHERE HOSTID = $3`
-	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, hostID)
+func (db *Database) SetHostResources(vmID string, usageCPU float64, usageMemory float64, diskRead float64, diskWrite float64, networkIn float64, networkOut float64) error {
+	sqlStatement := `UPDATE ` + db.dbPrefix + `HOSTS SET USAGE_CPU = $1, USAGE_MEM = $2, DISK_READ = $4, DISK_WRITE = $5, NET_RX = $6, NET_TX = $7 WHERE HOSTID = $3`
+	_, err := db.postgresql.Exec(sqlStatement, usageCPU, usageMemory, vmID, diskRead, diskWrite, networkIn, networkOut)
 	if err != nil {
 		return err
 	}

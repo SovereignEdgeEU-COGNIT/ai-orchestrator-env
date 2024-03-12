@@ -21,6 +21,10 @@ func printVMsTable(vms []*core.VM) {
 		{ID: "TotalMem", Name: "Total Mem", SortIndex: 7},
 		{ID: "UsageCPU", Name: "Usage CPU", SortIndex: 8},
 		{ID: "UsageMem", Name: "Usage Mem", SortIndex: 9},
+		{ID: "DiskRead", Name: "DiskRead", SortIndex: 10},
+		{ID: "DiskWrite", Name: "DiskWrite", SortIndex: 11},
+		{ID: "NetTX", Name: "NetTX", SortIndex: 12},
+		{ID: "NetRX", Name: "NetRX", SortIndex: 13},
 	}
 	t.SetCols(cols)
 
@@ -31,10 +35,15 @@ func printVMsTable(vms []*core.VM) {
 			termenv.String(strconv.FormatBool(vm.Deployed)).Foreground(theme.ColorBlue),
 			termenv.String(vm.HostID).Foreground(theme.ColorBlue),
 			termenv.String(strconv.Itoa(vm.HostStateID)).Foreground(theme.ColorViolet),
-			termenv.String(strconv.FormatFloat(vm.TotalCPU, 'f', -1, 64)).Foreground(theme.ColorMagenta),
-			termenv.String(strconv.FormatInt(vm.TotalMemory, 10)).Foreground(theme.ColorMagenta),
-			termenv.String(strconv.FormatFloat(vm.UsageCPU, 'f', -1, 64)).Foreground(theme.ColorGreen),
-			termenv.String(strconv.FormatInt(vm.UsageMemory, 10)).Foreground(theme.ColorGreen),
+			termenv.String(strconv.FormatFloat(vm.TotalCPU, 'f', 2, 64)).Foreground(theme.ColorMagenta),
+			termenv.String(strconv.FormatFloat(vm.TotalMemory, 'f', 2, 64)).Foreground(theme.ColorMagenta),
+			termenv.String(strconv.FormatFloat(vm.UsageCPU, 'f', 2, 64)).Foreground(theme.ColorGreen),
+			termenv.String(strconv.FormatFloat(vm.UsageMemory, 'f', 2, 64)).Foreground(theme.ColorGreen),
+			termenv.String(strconv.FormatFloat(vm.DiskRead, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(vm.DiskRead, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(vm.DiskWrite, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(vm.NetRX, 'f', 2, 64)).Foreground(theme.ColorYellow),
+			termenv.String(strconv.FormatFloat(vm.NetTX, 'f', 2, 64)).Foreground(theme.ColorYellow),
 		}
 		t.AddRow(row)
 	}

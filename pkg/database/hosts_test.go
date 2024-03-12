@@ -75,18 +75,18 @@ func TestSetHostResources(t *testing.T) {
 	assert.Nil(t, err)
 	defer db.Close()
 
-	host := &core.Host{HostID: "test_host_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 800, UsageMemory: 8385855552}
+	host := &core.Host{HostID: "test_host_id", TotalCPU: 1600, TotalMemory: 16785711104, UsageCPU: 1, UsageMemory: 2}
 	err = db.AddHost(host)
 	assert.Nil(t, err)
 
-	err = db.SetHostResources(host.HostID, float64(1), int64(2))
+	err = db.SetVMResources(host.HostID, float64(1), float64(2), float64(3), float64(4), float64(5), float64(6))
 	assert.Nil(t, err)
 
 	hosts, err := db.GetHosts()
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(hosts))
 	assert.Equal(t, float64(1), hosts[0].UsageCPU)
-	assert.Equal(t, int64(2), hosts[0].UsageMemory)
+	assert.Equal(t, float64(2), hosts[0].UsageMemory)
 }
 
 func TestRemoveHost(t *testing.T) {
