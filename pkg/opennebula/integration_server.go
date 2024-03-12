@@ -16,9 +16,10 @@ type IntegrationServer struct {
 	ginHandler *gin.Engine
 	port       int
 	httpServer *http.Server
+	monitor    *monitor
 }
 
-func CreateIntegrationServer(port int) *IntegrationServer {
+func CreateIntegrationServer(port int, prometheusURL string) *IntegrationServer {
 	server := &IntegrationServer{}
 	server.ginHandler = gin.Default()
 	server.ginHandler.Use(cors.Default())
@@ -34,6 +35,9 @@ func CreateIntegrationServer(port int) *IntegrationServer {
 	log.WithFields(log.Fields{"Port": port}).Info("Starting IntegrationServer")
 
 	server.setupRoutes()
+
+	server.monitor = newMonitor(prometheusURL)
+	server.monitor.runForever()
 
 	return server
 }
@@ -51,6 +55,8 @@ func (server *IntegrationServer) ServeForever() error {
 }
 
 func (server *IntegrationServer) Shutdown() {
+	server.monitor.stop()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

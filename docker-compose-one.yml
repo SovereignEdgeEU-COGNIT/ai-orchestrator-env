@@ -23,14 +23,16 @@ services:
       ENVSERVER_PORT: ${ENVSERVER_PORT}
       ENVSERVER_DB_HOST: timescaledb 
       ENVSERVER_DB_PORT: 5432
-      ENVSERVER_DB_USER:  ${ENVSERVER_DB_USER} 
-      ENVSERVER_DB_PASSWORD:  ${ENVSERVER_DB_PASSWORD}
-      ENVSERVER_VERBOSE: "true"  
+      ENVSERVER_DB_USER: ${ENVSERVER_DB_USER} 
+      ENVSERVER_DB_PASSWORD: ${ENVSERVER_DB_PASSWORD}
+      ENVSERVER_VERBOSE: "true" 
+      PROMETHEUS_HOST: ${PROMETHEUS_HOST} 
+      PROMETHEUS_PORT: ${PROMETHEUS_PORT}
       TZ: ${TZ}
     ports:
       - "${ENVSERVER_PORT}:${ENVSERVER_PORT}"
       - "4567:4567"
-    command: sh -c "envcli server start --initdb"
+    command: sh -c "envcli server start --initdb --one"
     
 volumes:
   timescaledb_data:

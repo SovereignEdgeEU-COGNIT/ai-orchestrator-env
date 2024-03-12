@@ -41,6 +41,7 @@ var PrometheusPort int
 var Filename string
 var MetricType string
 var ID string
+var One bool
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Verbose (debugging)")

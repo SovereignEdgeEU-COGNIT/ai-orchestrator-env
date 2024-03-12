@@ -8,20 +8,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Monitor struct {
+type monitor struct {
 	prometheusURL string
 	stopFlag      bool
 	client        *client.EnvClient
 }
 
-func newMonitor(prometheusURL string) *Monitor {
-	m := &Monitor{}
+func newMonitor(prometheusURL string) *monitor {
+	m := &monitor{}
 	m.prometheusURL = prometheusURL
 	m.client = client.CreateEnvClient("localhost", 50080, true)
 	return m
 }
 
-func (m *Monitor) runForever() {
+func (m *monitor) runForever() {
 	go func() {
 		for {
 			if m.stopFlag {
@@ -107,6 +107,6 @@ func (m *Monitor) runForever() {
 	}()
 }
 
-func (m *Monitor) stop() {
+func (m *monitor) stop() {
 	m.stopFlag = true
 }
