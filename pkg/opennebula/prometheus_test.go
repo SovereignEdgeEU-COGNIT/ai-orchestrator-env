@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const prometheusURL = "http://localhost:9090"
+const prometheusURL = "http://192.168.1.156:9090"
 
 func TestGetHostIDs(t *testing.T) {
 	hostIDs, err := GetHostIDs(prometheusURL)
@@ -15,15 +15,6 @@ func TestGetHostIDs(t *testing.T) {
 		t.Error(err)
 	}
 	assert.NotEmpty(t, hostIDs, "hostIDs should not be empty")
-}
-
-func TestGetVMIDs(t *testing.T) {
-	vmIDs, err := GetVMIDs(prometheusURL)
-	assert.Nil(t, err)
-	if err != nil {
-		t.Error(err)
-	}
-	assert.NotEmpty(t, vmIDs, "vmIDs should not be empty")
 }
 
 func TestGetHostCPU(t *testing.T) {

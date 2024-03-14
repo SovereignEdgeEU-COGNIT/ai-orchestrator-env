@@ -34,7 +34,7 @@ type Metric struct {
 	OneVMID   string `json:"one_vm_id"`
 }
 
-func queryPrometheus(prometheusURL, query string) ([]byte, error) {
+func QueryPrometheus(prometheusURL, query string) ([]byte, error) {
 	fullURL := fmt.Sprintf("%s/api/v1/query?query=%s", prometheusURL, url.QueryEscape(query))
 
 	resp, err := http.Get(fullURL)
@@ -55,7 +55,7 @@ func GetHostIDs(prometheusURL string) ([]string, error) {
 	var hostIDs []string
 
 	query := `opennebula_host_state`
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return hostIDs, err
 	}
@@ -73,11 +73,13 @@ func GetHostIDs(prometheusURL string) ([]string, error) {
 	return hostIDs, nil
 }
 
+//increase(opennebula_libvirt_cpu_seconds_total[30s])
+/*
 func GetVMIDs(prometheusURL string) ([]string, error) {
 	var vmsIDs []string
 
 	query := `opennebula_vm_state`
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return vmsIDs, err
 	}
@@ -94,12 +96,12 @@ func GetVMIDs(prometheusURL string) ([]string, error) {
 
 	return vmsIDs, nil
 }
-
+*/
 func GetHostTotalMem(prometheusURL, hostID string) ([]string, error) {
 	var vmsIDs []string
 
 	query := `opennebula_host_vms{one_host_id=` + hostID + `}`
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return vmsIDs, err
 	}
@@ -116,7 +118,7 @@ func GetHostTotalMem(prometheusURL, hostID string) ([]string, error) {
 func GetHostCPU(prometheusURL, hostID string) (float64, error) {
 	query := `sum by (one_host_id)(rate(node_cpu_seconds_total{mode='user',one_host_id="` + hostID + `"}[40s])) * 100`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}
@@ -145,7 +147,7 @@ func GetHostCPU(prometheusURL, hostID string) (float64, error) {
 func GetHostCPUBusy(prometheusURL, hostID string) (float64, error) {
 	query := `(((count(count(node_cpu_seconds_total{one_host_id="` + hostID + `"}) by (cpu))) - avg(sum by (mode)(rate(node_cpu_seconds_total{mode='idle',one_host_id="` + hostID + `"}[300s])))) * 100) / count(count(node_cpu_seconds_total{one_host_id="` + hostID + `"}) by (cpu))`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}
@@ -175,7 +177,7 @@ func GetHostCPUBusy(prometheusURL, hostID string) (float64, error) {
 func GetHostUsedMem(prometheusURL, hostID string) (float64, error) {
 	query := `node_memory_MemFree_bytes{one_host_id="` + hostID + `"}`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}
@@ -211,7 +213,7 @@ func GetHostUsedMem(prometheusURL, hostID string) (float64, error) {
 func GetHostAvailMem(prometheusURL, hostID string) (int64, error) {
 	query := `node_memory_MemTotal_bytes{one_host_id="` + hostID + `"}`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}
@@ -247,7 +249,7 @@ func GetHostAvailMem(prometheusURL, hostID string) (int64, error) {
 func GetHostNetTX(prometheusURL, hostID string) (float64, error) {
 	query := `rate(node_network_transmit_bytes_total{one_host_id="` + hostID + `"}[40s])*8`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}
@@ -278,7 +280,7 @@ func GetHostNetTX(prometheusURL, hostID string) (float64, error) {
 func GetHostNetRX(prometheusURL, hostID string) (float64, error) {
 	query := `rate(node_network_receive_bytes_total{one_host_id="` + hostID + `"}[40s])*8`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}
@@ -309,7 +311,7 @@ func GetHostNetRX(prometheusURL, hostID string) (float64, error) {
 func GetHostDiskRead(prometheusURL, hostID string) (float64, error) {
 	query := `sum(rate(node_disk_read_bytes_total{one_host_id="` + hostID + `"}[40s]))`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}
@@ -341,7 +343,7 @@ func GetHostDiskRead(prometheusURL, hostID string) (float64, error) {
 func GetHostDiskWrite(prometheusURL, hostID string) (float64, error) {
 	query := `sum(rate(node_disk_written_bytes_total{one_host_id="` + hostID + `"}[40s]))`
 
-	r, err := queryPrometheus(prometheusURL, query)
+	r, err := QueryPrometheus(prometheusURL, query)
 	if err != nil {
 		return 0.0, err
 	}

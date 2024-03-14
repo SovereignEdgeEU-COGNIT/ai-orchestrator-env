@@ -103,8 +103,108 @@ func (m *monitor) runForever() {
 					}
 				}
 			}
+
+			err = m.updateVMMetrics()
+			if err != nil {
+				log.Error("Failed to update VM metrics: ", err)
+			}
 		}
 	}()
+}
+
+func (m *monitor) updateVMMetrics() error {
+
+	vmIDs, err := GetVMIDs(m.prometheusURL)
+
+	if err != nil {
+		return err
+	}
+
+	vmMap := make(map[string]*core.VM)
+	for _, vmID := range vmIDs {
+		vm := &core.VM{
+			VMID: vmID,
+		}
+		vmMap[vmID] = vm
+	}
+
+	if err = MapVMHostIDs(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	if err = GetVMsDiskRead(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	if err = GetVMsDiskWrite(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	if err = GetVMsMemUsage(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	if err = GetVMsMemTotal(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	/* if err = GetVMsCPUUsage(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	if err = GetVMsCPUTotal(m.prometheusURL, vmMap); err != nil {
+		return err
+	} */
+
+	if err = GetVMsNetRx(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	if err = GetVMsNetTx(m.prometheusURL, vmMap); err != nil {
+		return err
+	}
+
+	vmsServer, err := m.client.GetVMs()
+
+	if err != nil {
+		return err
+	}
+
+	for id, vm := range vmMap {
+
+		//if vm is not in the server, add it
+		inServer := false
+
+		for _, serverVM := range vmsServer {
+
+			if serverVM.VMID == id {
+				inServer = true
+
+				if serverVM.HostID != vm.HostID {
+					err = m.client.Bind(vm.VMID, vm.HostID)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		if !inServer {
+			err = m.client.AddVM(vm)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		err = m.client.AddMetric(vm.VMID, core.VMType, &core.Metric{Timestamp: time.Now(), CPU: vm.UsageCPU, Memory: vm.UsageMemory, DiskRead: vm.DiskRead, DiskWrite: vm.DiskWrite, NetRX: vm.NetRX, NetTX: vm.NetTX})
+
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	return nil
 }
 
 func (m *monitor) stop() {
