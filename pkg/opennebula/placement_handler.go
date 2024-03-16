@@ -58,3 +58,51 @@ func (server *IntegrationServer) handlePlacementRequest(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/json", []byte(respJSON))
 }
+
+func (server *IntegrationServer) placeVMs(vms []VM) ([]VMMapping, error) {
+
+	vmMappings := make([]VMMapping, len(vms))
+
+	for i, vm := range vms {
+		vmMapping, err := server.randomVMPlacement(vm)
+
+		if err != nil {
+			log.Error("Error placing VM: ", err)
+			continue
+		}
+
+		vmMappings[i] = vmMapping
+	}
+
+	return vmMappings, nil
+}
+
+func (server *IntegrationServer) randomVMPlacement(vm VM) (VMMapping, error) {
+	hosts := vm.HostIDs
+
+	if len(hosts) == 0 {
+		return VMMapping{ID: vm.ID, HostID: -1}, fmt.Errorf("Invalid placement request, no hosts available")
+	}
+
+	randomIndex := rand.Intn(len(hosts))
+	randomHost := hosts[randomIndex]
+
+	return VMMapping{ID: vm.ID, HostID: randomHost}, nil
+}
+
+func (server *IntegrationServer) offloadVMPlacement(vms []VM) ([]VMMapping, error) {
+	vmMappings := make([]VMMapping, len(vms))
+
+	for i, vm := range vms {
+		vmMapping, err := server.roundRobinVMPlacement(vm)
+
+		if err != nil {
+			log.Error("Error placing VM: ", err)
+			continue
+		}
+
+		vmMappings[i] = vmMapping
+	}
+
+	return vmMappings, nil
+}
