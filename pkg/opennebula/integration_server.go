@@ -17,9 +17,10 @@ type IntegrationServer struct {
 	port       int
 	httpServer *http.Server
 	monitor    *monitor
+	MLClient   *MLClient
 }
 
-func CreateIntegrationServer(port int, prometheusURL string) *IntegrationServer {
+func CreateIntegrationServer(port int, prometheusURL string, mlHost string, mlPort int, mlInsecure bool) *IntegrationServer {
 	server := &IntegrationServer{}
 	server.ginHandler = gin.Default()
 	server.ginHandler.Use(cors.Default())
@@ -28,6 +29,8 @@ func CreateIntegrationServer(port int, prometheusURL string) *IntegrationServer 
 		Addr:    ":" + strconv.Itoa(port),
 		Handler: server.ginHandler,
 	}
+
+	server.MLClient = CreateMLClient(mlHost, mlPort, mlInsecure)
 
 	server.httpServer = httpServer
 	server.port = port

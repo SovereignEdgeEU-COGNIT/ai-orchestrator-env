@@ -39,6 +39,29 @@ func parseDBEnv() {
 	}
 }
 
+func parseMLClientEnv() {
+	mlHost := os.Getenv("ML_HOST")
+	if mlHost != "" {
+		MLHost = mlHost
+	}
+
+	var err error
+	mlPortEnvStr := os.Getenv("ML_PORT")
+	if mlPortEnvStr != "" {
+		MLPort, err = strconv.Atoi(mlPortEnvStr)
+		CheckError(err)
+	}
+
+	mlInsecureStr := os.Getenv("ML_INSECURE")
+
+	if mlInsecureStr == "true" {
+		MLInsecure = false
+	} else {
+		MLInsecure = true
+	}
+
+}
+
 func parseEnv() {
 	var err error
 

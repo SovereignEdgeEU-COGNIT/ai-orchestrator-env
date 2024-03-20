@@ -2,7 +2,6 @@ package opennebula
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 
 	"github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/pkg/core"
@@ -72,13 +71,83 @@ func MapVMHostIDs(prometheusURL string, vmMap map[string]*core.VM) error {
 }
 
 func GetVMsCPUUsage(prometheusURL string, vmMap map[string]*core.VM) error {
-	return fmt.Errorf("GetVMsCPUUsage not implemented")
+	seconds := 40
+	query := `sum by(one_vm_id)(increase(opennebula_libvirt_cpu_seconds_total[` + strconv.Itoa(seconds) + `s]))`
+	r, err := QueryPrometheus(prometheusURL, query)
+	if err != nil {
+		return err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return err
+	}
+
+	for _, result := range resp.Data.Result {
+
+		cpuSecTotalStr, ok := result.Value[1].(string)
+		if !ok {
+			println("Failed to convert cpuSecTotalStr to string")
+		}
+
+		cpuSecTotal, err := strconv.ParseFloat(cpuSecTotalStr, 64)
+
+		if err != nil {
+			println("Failed to convert cpuSecTotalStr to float64")
+		}
+
+		// if result.Metric.OneVMID in map then set hostID
+		if vm, ok := vmMap[result.Metric.OneVMID]; !ok {
+			println("VMID not found in map, ", result.Metric.OneVMID)
+			continue
+		} else {
+			vm.UsageCPU = cpuSecTotal / float64(seconds) / vm.TotalCPU
+		}
+	}
+
+	return nil
+	//return fmt.Errorf("GetVMsCPUUsage not implemented")
 }
 
 func GetVMsCPUTotal(prometheusURL string, vmMap map[string]*core.VM) error {
 
-	//return error, still missing API call
-	return fmt.Errorf("GetVMsCPUTotal not implemented")
+	//! Leaving error as this needs to have the correct query str
+	query := `opennebula_vm_cpu_vcpus`
+	r, err := QueryPrometheus(prometheusURL, query)
+	if err != nil {
+		return err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return err
+	}
+
+	for _, result := range resp.Data.Result {
+
+		cpuCountStr, ok := result.Value[1].(string)
+		if !ok {
+			println("Failed to convert GetVMsCPUTotal to string")
+		}
+
+		cpuCount, err := strconv.ParseFloat(cpuCountStr, 64)
+
+		if err != nil {
+			println("Failed to convert GetVMsCPUTotal to float64")
+		}
+
+		// if result.Metric.OneVMID in map then set hostID
+		if vm, ok := vmMap[result.Metric.OneVMID]; !ok {
+			println("VMID not found in map, ", result.Metric.OneVMID)
+			continue
+		} else {
+			vm.TotalCPU = cpuCount
+		}
+	}
+
+	return nil
 
 }
 

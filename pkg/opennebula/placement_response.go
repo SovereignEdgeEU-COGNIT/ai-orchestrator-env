@@ -7,6 +7,16 @@ type VMMapping struct {
 	HostID int `json:"HOST_ID"`
 }
 
+func VMMappingFromJSON(jsonString string) (*VMMapping, error) {
+	var vmMapping *VMMapping
+	err := json.Unmarshal([]byte(jsonString), &vmMapping)
+	if err != nil {
+		return nil, err
+	}
+
+	return vmMapping, nil
+}
+
 type PlacementResponse struct {
 	VMS []VMMapping `json:"VMS"`
 }

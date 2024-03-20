@@ -53,6 +53,7 @@ Then open browser: http://localhost:3000.
 ## Accessing Prometheus
 ```console
 ssh -v -N -L 9090:10.10.10.2:9090 root@194.28.122.112
+ssh -v -N -L 0.0.0.0:9090:10.10.10.2:9090 root@194.28.122.112
 ```
 
 Prometheus is available at http://localhost:9090.

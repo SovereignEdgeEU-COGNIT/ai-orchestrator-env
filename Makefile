@@ -1,8 +1,8 @@
 all: build
 .PHONY: all build
 
-BUILD_IMAGE ?= johan/envserver
-PUSH_IMAGE ?= johan/envserver
+BUILD_IMAGE ?= chilikorp/envserver
+PUSH_IMAGE ?= chilikorp/envserver
 
 VERSION := $(shell git rev-parse --short HEAD)
 BUILDTIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')

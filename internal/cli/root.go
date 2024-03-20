@@ -19,6 +19,9 @@ var DBHost string
 var DBPort int
 var DBUser string
 var DBPassword string
+var MLHost string
+var MLPort int
+var MLInsecure bool
 var Insecure bool
 var SkipTLSVerify bool
 var UseTLS bool

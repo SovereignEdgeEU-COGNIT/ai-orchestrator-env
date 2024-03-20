@@ -371,3 +371,35 @@ func GetHostDiskWrite(prometheusURL, hostID string) (float64, error) {
 
 	return diskRead, nil
 }
+
+func GetHostEnergyUsage(prometheusURL, hostID string) (float64, error) {
+	query := `sum(rate(scaph_host_power_microwatts{host_id="` + hostID + `"}[40s]))`
+
+	r, err := QueryPrometheus(prometheusURL, query)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var resp PrometheusResponse
+	err = json.Unmarshal(r, &resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	if len(resp.Data.Result) == 0 {
+		return 0.0, fmt.Errorf("No data found, hostID: %s", hostID)
+	}
+
+	if len(resp.Data.Result[0].Value) < 2 {
+		return 0.0, fmt.Errorf("No value found, hostID: %s", hostID)
+	}
+
+	str, ok := resp.Data.Result[0].Value[1].(string)
+	if !ok {
+		return 0.0, fmt.Errorf("Failed to convert value to string")
+	}
+
+	energyUsage, err := strconv.ParseFloat(str, 64)
+
+	return energyUsage, nil
+}

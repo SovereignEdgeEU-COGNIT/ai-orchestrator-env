@@ -24,6 +24,15 @@ type VM struct {
 	UserTemplate UserTemplate `json:"USER_TEMPLATE"`
 }
 
+func (vm *VM) ToJSON() (string, error) {
+	jsonBytes, err := json.Marshal(vm)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonBytes), nil
+}
+
 type PlacementRequest struct {
 	VMs []VM `json:"VMS"`
 }
@@ -73,6 +82,7 @@ func (request *PlacementRequest) Equals(request2 *PlacementRequest) bool {
 
 func ParsePlacementRequest(jsonString string) (*PlacementRequest, error) {
 	var request *PlacementRequest
+	//print(jsonString)
 	err := json.Unmarshal([]byte(jsonString), &request)
 	if err != nil {
 		return nil, err

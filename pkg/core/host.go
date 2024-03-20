@@ -14,6 +14,7 @@ type Host struct {
 	NetRX       float64 `json:"netrx"`
 	NetTX       float64 `json:"nettx"`
 	VMs         int     `json:"vms"`
+	EnergyUsage float64 `json:"energy_usage"`
 }
 
 func ConvertJSONToHost(jsonString string) (*Host, error) {
@@ -70,6 +71,7 @@ func (host *Host) Equals(host2 *Host) bool {
 		host.DiskWrite == host2.DiskWrite &&
 		host.NetRX == host2.NetRX &&
 		host.NetTX == host2.NetTX &&
+		host.EnergyUsage == host2.EnergyUsage &&
 		host.VMs == host2.VMs {
 		return true
 	}

@@ -80,9 +80,13 @@ func (m *monitor) runForever() {
 				if err != nil {
 					log.Debug("Failed to get host available memory: ", err)
 				}
+				energyUsage, err := GetHostEnergyUsage(m.prometheusURL, hostID)
+				if err != nil {
+					log.Debug("Failed to get host energy usage: ", err)
+				}
 
 				// Add metric to the envserver
-				err = m.client.AddMetric(hostID, core.HostType, &core.Metric{Timestamp: now, CPU: cpuTotal, Memory: usedMem, DiskRead: diskRead, DiskWrite: diskWrite, NetTX: netTX, NetRX: netRX})
+				err = m.client.AddMetric(hostID, core.HostType, &core.Metric{Timestamp: now, CPU: cpuTotal, Memory: usedMem, DiskRead: diskRead, DiskWrite: diskWrite, NetTX: netTX, NetRX: netRX, EnergyUsage: energyUsage})
 				if err != nil {
 					log.Error("Failed to add metric to server: ", err)
 				}
@@ -148,13 +152,13 @@ func (m *monitor) updateVMMetrics() error {
 		return err
 	}
 
-	/* if err = GetVMsCPUUsage(m.prometheusURL, vmMap); err != nil {
+	if err = GetVMsCPUTotal(m.prometheusURL, vmMap); err != nil {
 		return err
 	}
 
-	if err = GetVMsCPUTotal(m.prometheusURL, vmMap); err != nil {
+	if err = GetVMsCPUUsage(m.prometheusURL, vmMap); err != nil {
 		return err
-	} */
+	}
 
 	if err = GetVMsNetRx(m.prometheusURL, vmMap); err != nil {
 		return err

@@ -17,8 +17,8 @@ func (db *Database) AddMetric(id string, metricType int, metric *core.Metric) er
 		return errors.New("ID must be specified")
 	}
 
-	sqlStatement := `INSERT INTO ` + db.dbPrefix + `METRICS (ID, TYPE, TS, CPU, MEMORY, DISK_READ, DISK_WRITE, NET_RX, NET_TX) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
-	_, err := db.postgresql.Exec(sqlStatement, id, metricType, metric.Timestamp, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetRX, metric.NetTX)
+	sqlStatement := `INSERT INTO ` + db.dbPrefix + `METRICS (ID, TYPE, TS, CPU, MEMORY, DISK_READ, DISK_WRITE, NET_RX, NET_TX, ENERGY_USAGE) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+	_, err := db.postgresql.Exec(sqlStatement, id, metricType, metric.Timestamp, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetRX, metric.NetTX, metric.EnergyUsage)
 	if err != nil {
 		return err
 	}
@@ -39,11 +39,12 @@ func (db *Database) parseMetrics(rows *sql.Rows) ([]*core.Metric, error) {
 		var diskWrite float64
 		var netRX float64
 		var netTX float64
-		if err := rows.Scan(&hostID, &metricType, &ts, &cpu, &memory, &diskRead, &diskWrite, &netRX, &netTX); err != nil {
+		var energyUsage float64
+		if err := rows.Scan(&hostID, &metricType, &ts, &cpu, &memory, &diskRead, &diskWrite, &netRX, &netTX, &energyUsage); err != nil {
 			return nil, err
 		}
 
-		metric := &core.Metric{Timestamp: ts, CPU: cpu, Memory: memory, DiskRead: diskRead, DiskWrite: diskWrite, NetRX: netRX, NetTX: netTX}
+		metric := &core.Metric{Timestamp: ts, CPU: cpu, Memory: memory, DiskRead: diskRead, DiskWrite: diskWrite, NetRX: netRX, NetTX: netTX, EnergyUsage: energyUsage}
 		metrics = append(metrics, metric)
 	}
 
@@ -63,7 +64,7 @@ func (db *Database) GetMetrics(hostID string, metricType int, since time.Time, c
 }
 
 func (db *Database) Export(id string, metricType int, filename string) error {
-	sqlStatement := `SELECT ID, TYPE, TS, CPU, MEMORY, DISK_READ, DISK_WRITE, NET_RX, NET_TX FROM ` + db.dbPrefix + `METRICS WHERE ID=$1 AND TYPE=$2`
+	sqlStatement := `SELECT ID, TYPE, TS, CPU, MEMORY, DISK_READ, DISK_WRITE, NET_RX, NET_TX, ENERGY_USAGE FROM ` + db.dbPrefix + `METRICS WHERE ID=$1 AND TYPE=$2`
 	rows, err := db.postgresql.Query(sqlStatement, id, metricType)
 	if err != nil {
 		return err
@@ -81,7 +82,7 @@ func (db *Database) Export(id string, metricType int, filename string) error {
 	defer writer.Flush()
 
 	// Write CSV header
-	header := []string{"id", "type", "ts", "cpu", "mem", "disk_read", "disk_write", "net_rx", "net_tx"}
+	header := []string{"id", "type", "ts", "cpu", "mem", "disk_read", "disk_write", "net_rx", "net_tx", "energy_usage"}
 	if err := writer.Write(header); err != nil {
 		return err
 	}
@@ -97,13 +98,14 @@ func (db *Database) Export(id string, metricType int, filename string) error {
 		var diskWrite float64
 		var netRX float64
 		var netTX float64
+		var energyUsage float64
 
-		err := rows.Scan(&id, &typeValue, &ts, &cpu, &memory, &diskRead, &diskWrite, &netRX, &netTX)
+		err := rows.Scan(&id, &typeValue, &ts, &cpu, &memory, &diskRead, &diskWrite, &netRX, &netTX, &energyUsage)
 		if err != nil {
 			return err
 		}
 
-		record := []string{id, fmt.Sprintf("%d", typeValue), strconv.FormatInt(ts.UnixNano(), 10), fmt.Sprintf("%f", cpu), fmt.Sprintf("%d", memory), fmt.Sprintf("%f", diskRead), fmt.Sprintf("%f", diskWrite), fmt.Sprintf("%f", netRX), fmt.Sprintf("%f", netTX)}
+		record := []string{id, fmt.Sprintf("%d", typeValue), strconv.FormatInt(ts.UnixNano(), 10), fmt.Sprintf("%f", cpu), fmt.Sprintf("%d", memory), fmt.Sprintf("%f", diskRead), fmt.Sprintf("%f", diskWrite), fmt.Sprintf("%f", netRX), fmt.Sprintf("%f", netTX), fmt.Sprintf("%f", energyUsage)}
 		if err := writer.Write(record); err != nil {
 			return err
 		}

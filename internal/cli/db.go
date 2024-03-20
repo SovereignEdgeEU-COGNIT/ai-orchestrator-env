@@ -41,6 +41,7 @@ var dbCreateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		parseEnv()
 		parseDBEnv()
+		parseMLClientEnv()
 
 		var db *database.Database
 		for {
@@ -72,6 +73,7 @@ var dbDropCmd = &cobra.Command{
 	Long:  "Drop the database",
 	Run: func(cmd *cobra.Command, args []string) {
 		parseDBEnv()
+		parseMLClientEnv()
 
 		fmt.Print("WARNING!!! Are you sure you want to drop the database? This operation cannot be undone! (YES,no): ")
 
@@ -100,6 +102,7 @@ var exportCmd = &cobra.Command{
 	Long:  "Export to CSV",
 	Run: func(cmd *cobra.Command, args []string) {
 		parseDBEnv()
+		parseMLClientEnv()
 
 		if Filename == "" {
 			CheckError(fmt.Errorf("Filename is required"))

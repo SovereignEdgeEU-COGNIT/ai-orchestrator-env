@@ -33,6 +33,7 @@ var serverStartCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		parseDBEnv()
 		parseEnv()
+		parseMLClientEnv()
 
 		var db *database.Database
 		for {
@@ -69,7 +70,7 @@ var serverStartCmd = &cobra.Command{
 		if One {
 			log.WithFields(log.Fields{"Port": 4567}).Info("Started OpenNebula ntegration server")
 			prometheusURL := "http://" + PrometheusHost + ":" + strconv.Itoa(PrometheusPort)
-			integrationServer := opennebula.CreateIntegrationServer(4567, prometheusURL)
+			integrationServer := opennebula.CreateIntegrationServer(4567, prometheusURL, MLHost, MLPort, MLInsecure)
 
 			go func() {
 				for {

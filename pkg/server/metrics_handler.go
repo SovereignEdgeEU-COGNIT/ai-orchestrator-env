@@ -85,7 +85,7 @@ func (server *EnvServer) handleAddMetricRequest(c *gin.Context) {
 
 	switch metricType {
 	case core.HostType:
-		err = server.db.SetHostResources(id, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetRX, metric.NetTX)
+		err = server.db.SetHostResources(id, metric.CPU, metric.Memory, metric.DiskRead, metric.DiskWrite, metric.NetRX, metric.NetTX, metric.EnergyUsage)
 		if err != nil {
 			log.WithFields(log.Fields{"Error": err.Error()}).Error("Failed to set host resources")
 			c.String(http.StatusBadRequest, err.Error())
