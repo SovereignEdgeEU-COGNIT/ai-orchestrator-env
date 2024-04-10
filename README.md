@@ -1,5 +1,7 @@
 [![Go](https://github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/actions/workflows/go.yml/badge.svg)](https://github.com/SovereignEdgeEU-COGNIT/ai-orchestrator-env/actions/workflows/go.yml)
 
+![AI-O architecture](AI-OArchitecturev2.jpg)
+
 # Introduction
 This repo provides a virtual environment, functioning as a *digital twin* of a cloud-edge infrastructure, specifically designed to enable AI agents to automate and optimize IT operations. The environment enables AI agents to both operate and learn to manage IT infrastructures. 
 
@@ -12,6 +14,50 @@ The virtual environment serves multiple purposes:
 The environment can be used to generate *state and action spaces*. 
 * The state-space represents configurations (e.g. hosts, VMs, CPU load etc) that an AI agent might encounter in the environment. Each state is a unique snapshot of the environment at a given time. 
 * The action space defines the set of all possible actions (e.g. place or scale a VM) that the AI agent can take at any given state. 
+
+# Build & Run
+
+## Run
+Doesn't require building beforehand. Get's docker images from Docker Hub
+```bash
+source .env # Change environment variables accordingly
+docker compose --file=./docker-compose-one.yml up # Changes images accordingly if modified
+```
+
+Expects the following in .env
+```bash
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LC_CTYPE=UTF-8
+export TZ=Europe/Stockholm
+export ENVSERVER_VERBOSE="false"    # Verbose logging
+export ENVSERVER_HOST="addr"        # Address to the Database manager/envserver
+export ENVSERVER_PORT="50080"       # Port for the Database manager/envserver
+export ENVSERVER_TLS="false"        # TLS for the Database manager/envserver
+export ENVSERVER_DB_HOST="addr"     # Address to the Timescale DB
+export ENVSERVER_DB_USER="postgres" # User credentials for the Timescale DB
+export ENVSERVER_DB_PORT="5432"     # Port for the Timescale DB
+export ENVSERVER_DB_PASSWORD="pass" # User credentials for the Timescale DB
+export ONED_PASS="pass"             # User credentials for OneD
+export ONED_ADDR="addr"             # Address to OneD
+export ML_PORT="50090"              # Port for the MLServer
+export ML_HOST="mlserver"           # Address to MLServer
+export ML_INSECURE="false"          # TLS to MLServer
+```
+
+
+## Build
+See Makefile for further options
+
+```bash
+make build # Builds the project, requires go installed
+# Built to ./bin/envcli
+```
+
+```bash
+make container # Builds the project and creates container (modify BUILD_IMAGE for alternative name)
+```
 
 # Getting started
 To use the CLI, you most source the following environmental variables:

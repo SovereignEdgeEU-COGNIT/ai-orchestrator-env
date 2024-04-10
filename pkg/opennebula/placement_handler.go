@@ -31,12 +31,18 @@ func (server *IntegrationServer) handlePlacementRequest(c *gin.Context) {
 
 	vms := placementRequest.VMs
 
-	vmMapping, err := server.offloadVMPlacement(vms)
+	fmt.Println("VMs: ", vms)
+
+	vmMapping, err := server.offloadVMPlacement(&vms)
 	if err != nil {
 		fmt.Println(err)
 		log.Error("Error placing VMs: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	}
+
+	for mapping := range vmMapping {
+		fmt.Println(mapping)
 	}
 
 	// vmMapping := make([]VMMapping, len(vms))
@@ -99,13 +105,14 @@ func (server *IntegrationServer) randomVMPlacement(vm VM) (VMMapping, error) {
 	return VMMapping{ID: vm.ID, HostID: randomHost}, nil
 }
 
-func (server *IntegrationServer) offloadVMPlacement(vms []VM) ([]VMMapping, error) {
-	vmMappings := make([]VMMapping, len(vms))
+func (server *IntegrationServer) offloadVMPlacement(vms *[]VM) ([]VMMapping, error) {
+	vmMappings := make([]VMMapping, len(*vms))
 
-	for i, vm := range vms {
+	for i, vm := range *vms {
 		vmMapping, err := server.MLClient.PlaceVM(&vm)
 
 		if err != nil {
+			fmt.Println(err)
 			log.Error("Error placing VM: ", err)
 			continue
 		}

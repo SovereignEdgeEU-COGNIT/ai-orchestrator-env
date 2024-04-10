@@ -47,7 +47,7 @@ func (client *MLClient) PlaceVM(vm *VM) (*VMMapping, error) {
 	resp, err := client.restyClient.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonStr).
-		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/api/vm")
+		Post(client.protocol + "://" + client.host + ":" + strconv.Itoa(client.port) + "/api/place")
 	if err != nil {
 		return nil, err
 	}

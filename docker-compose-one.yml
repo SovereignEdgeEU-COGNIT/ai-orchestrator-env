@@ -15,7 +15,7 @@ services:
       - timescaledb_data:/var/lib/postgresql/data
   
   envserver:
-    image: chilikorp/envserver
+    image: SimonBonr/envserver
     depends_on: 
       - timescaledb
     environment:
@@ -25,10 +25,10 @@ services:
       ENVSERVER_DB_PORT: 5432
       ENVSERVER_DB_USER: ${ENVSERVER_DB_USER} 
       ENVSERVER_DB_PASSWORD: ${ENVSERVER_DB_PASSWORD}
-      ENVSERVER_VERBOSE: "true" 
+      ENVSERVER_VERBOSE: ${ENVSERVER_VERBOSE}
       PROMETHEUS_HOST: ${PROMETHEUS_HOST} 
       PROMETHEUS_PORT: ${PROMETHEUS_PORT}
-      ML_HOST: mlserver
+      ML_HOST: ${ML_HOST}
       ML_PORT: ${ML_PORT}
       ML_INSECURE: ${ML_INSECURE}
       TZ: ${TZ}
@@ -38,12 +38,13 @@ services:
     command: sh -c "envcli server start --initdb --one"
 
   mlserver:
-    image: flask-app
+    image: SimonBonr/mlserver
     depends_on: 
       - timescaledb
       - envserver
     environment:
       ML_MODEL_PORT: ${ML_PORT} 
+      ONED_ADDR: ${ONED_ADDR}
       ONED_PASS: ${ONED_PASS}
       ENVSERVER_DB_HOST: timescaledb 
       ENVSERVER_DB_PORT: 5432
