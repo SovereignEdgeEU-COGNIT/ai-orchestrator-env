@@ -15,7 +15,7 @@ services:
       - timescaledb_data:/var/lib/postgresql/data
   
   envserver:
-    image: SimonBonr/envserver
+    image: simonbonr/envserver
     depends_on: 
       - timescaledb
     environment:
@@ -38,7 +38,7 @@ services:
     command: sh -c "envcli server start --initdb --one"
 
   mlserver:
-    image: SimonBonr/mlserver
+    image: simonbonr/mlserver
     depends_on: 
       - timescaledb
       - envserver
