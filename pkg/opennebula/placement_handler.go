@@ -31,18 +31,12 @@ func (server *IntegrationServer) handlePlacementRequest(c *gin.Context) {
 
 	vms := placementRequest.VMs
 
-	fmt.Println("VMs: ", vms)
-
 	vmMapping, err := server.offloadVMPlacement(&vms)
 	if err != nil {
 		fmt.Println(err)
 		log.Error("Error placing VMs: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
-	}
-
-	for mapping := range vmMapping {
-		fmt.Println(mapping)
 	}
 
 	// vmMapping := make([]VMMapping, len(vms))
